@@ -635,7 +635,7 @@
     scaleSlider.addEventListener("input", function (e) {
       const scale = parseFloat(e.target.value);
       // Update numeric label, e.g. “1.2×”
-      scaleValueLabel.innerText = scale.toFixed(1) + "×";
+      scaleValueLabel.innerText = scale.toFixed(2) + "×";
       // Apply transform: scale(...) to every .button-slot
       document.querySelectorAll(".button-slot").forEach((slot) => {
         slot.style.transform = `scale(${scale})`;
