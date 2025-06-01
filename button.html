@@ -13,13 +13,14 @@
       --accent: #ffffff;
       --border: #ff4444;
     }
-input[type="file"] {
-  max-width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  display: inline-block;
-}
+
+    input[type="file"] {
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      display: inline-block;
+    }
 
     body {
       font-family: 'Courier New', monospace;
@@ -343,7 +344,7 @@ input[type="file"] {
         <legend style="font-weight:bold; color:var(--accent);">Upload Images</legend>
         <label>Select PNG or JPG files:</label><br />
         <div style="overflow: hidden;">
-        <input type="file" id="imageLoader" accept="image/*" multiple="" style="max-width: 250px;">
+          <input type="file" id="imageLoader" accept="image/*" multiple="" style="max-width: 250px;">
         </div>
         <legend style="font-weight:bold; color:var(--accent);">Button Background Color</legend>
         <input type="color" id="buttonBgColorPicker" value="#ffffff" style="top: 6px;position: relative;">
@@ -421,7 +422,7 @@ input[type="file"] {
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
-    
+
     const maxCols = 5;
     const maxRows = 6;
     const totalButtons = maxCols * maxRows;
@@ -484,7 +485,7 @@ input[type="file"] {
         slot.insertBefore(bg, slot.querySelector("img.button-image") || null);
       });
     }
-    
+
     function selectAll() {
       document.querySelectorAll(".button-slot").forEach((slot) => {
         const checkbox = slot.querySelector(".checkbox");
@@ -640,12 +641,11 @@ input[type="file"] {
 
     // 3) Export to PNG
     function exportToPNG() {
-      // Wait for every <img> in #a4canvas to finish loading
       const imgs = a4canvas.querySelectorAll("img");
+      const acmeLogo = document.getElementById("logo");
+
       const loadPromises = Array.from(imgs).map((img) => {
-        if (img.complete) {
-          return Promise.resolve();
-        }
+        if (img.complete) return Promise.resolve();
         return new Promise((resolve) => {
           img.onload = () => resolve();
           img.onerror = () => resolve();
@@ -658,31 +658,59 @@ input[type="file"] {
           ".overlay-inner, .overlay-middle, .overlay-outer, .checkbox"
         ).forEach((el) => (el.style.display = "none"));
 
-        // Remove “.selected” borders so they don’t appear in the export
+        // Remove selected borders
         document.querySelectorAll(".button-slot").forEach((slot) => {
           slot.classList.remove("selected");
         });
 
-        // Render with html2canvas
-        html2canvas(a4canvas, {
-          scale: 2,
-          useCORS: false,     // images are data-URLs
-          allowTaint: true,
-          backgroundColor: null, // transparent background
-        }).then((canvas) => {
-          // Restore overlays & checkboxes right after rendering
-          document.querySelectorAll(
-            ".overlay-inner, .overlay-middle, .overlay-outer, .checkbox"
-          ).forEach((el) => (el.style.display = ""));
+        // === Convert logo to grayscale ===
+        const logoClone = acmeLogo.cloneNode(); // keep the original for later
+        const tempCanvas = document.createElement("canvas");
+        const ctx = tempCanvas.getContext("2d");
 
-          // Trigger download
-          const link = document.createElement("a");
-          link.download = "button-sheet.png";
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-        });
+        tempCanvas.width = acmeLogo.naturalWidth;
+        tempCanvas.height = acmeLogo.naturalHeight;
+
+        ctx.drawImage(acmeLogo, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imageData.data;
+
+        // Loop over every pixel and convert to grayscale
+        for (let i = 0; i < data.length; i += 4) {
+          const avg = 0.3 * data[i] + 0.59 * data[i + 1] + 0.11 * data[i + 2];
+          data[i] = data[i + 1] = data[i + 2] = avg;
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+        acmeLogo.src = tempCanvas.toDataURL();
+
+        // === After setting src, wait for the new image to load ===
+        acmeLogo.onload = () => {
+          html2canvas(a4canvas, {
+            scale: 2,
+            useCORS: false,
+            allowTaint: true,
+            backgroundColor: null,
+          }).then((canvas) => {
+            // Restore overlays & checkboxes
+            document.querySelectorAll(
+              ".overlay-inner, .overlay-middle, .overlay-outer, .checkbox"
+            ).forEach((el) => (el.style.display = ""));
+
+            // Restore the original color logo
+            acmeLogo.replaceWith(logoClone);
+
+            // Trigger download
+            const link = document.createElement("a");
+            link.download = "ⒶCME-button-sheet.png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+          });
+        };
       });
     }
+
     const imageScaleSlider = document.getElementById("imageScaleSlider");
     const imageScaleValue = document.getElementById("imageScaleValue");
 
