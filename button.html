@@ -342,9 +342,9 @@ input[type="file"] {
       <fieldset style="border:2px dashed var(--accent); padding:0.5em;max-height: 175px;min-height: fit-content;">
         <legend style="font-weight:bold; color:var(--accent);">Upload Images</legend>
         <label>Select PNG or JPG files:</label><br />
-<div style="max-width: 250px; overflow: hidden;">
-  <input type="file" id="imageLoader" accept="image/*" multiple />
-</div>
+        <div style="overflow: hidden;">
+        <input type="file" id="imageLoader" accept="image/*" multiple="" style="max-width: 250px;">
+        </div>
         <legend style="font-weight:bold; color:var(--accent);">Button Background Color</legend>
         <input type="color" id="buttonBgColorPicker" value="#ffffff" style="top: 6px;position: relative;">
         <button onclick="applyBackgroundColor()">Apply to Selected</button>
@@ -359,7 +359,7 @@ input[type="file"] {
           Scale (0.5 – 1.5):
           <input type="range" id="imageScaleSlider" min="0.5" max="1.5" step="0.01" value="1"
             style="position: relative;top: 10px;">
-          <span id="imageScaleValue">1.0×</span>
+          <span id="imageScaleValue">1.00×</span>
         </label>
       </fieldset>
 
@@ -368,7 +368,7 @@ input[type="file"] {
         <label>
           Scale (0.5 – 1.5):
           <input type="range" id="scaleSlider" min="0.5" max="1.5" step="0.01" value="1" />
-          <span id="scaleValue">1.0×</span>
+          <span id="scaleValue">1.00×</span>
         </label>
         <legend style="font-weight:bold; color:var(--accent);"><br>adjust if your printer <br>does printer stuff
         </legend>
@@ -683,30 +683,12 @@ input[type="file"] {
         });
       });
     }
-    document.getElementById("imageLoader").addEventListener("change", function (e) {
-      const files = e.target.files;
-      const filenameDisplay = document.getElementById("filenameDisplay");
-
-      // Show max 3 filenames, truncate long ones
-      const names = Array.from(files).map(file => {
-        const name = file.name;
-        if (name.length > 10) {
-          return name.slice(0, 10) + "..." + name.slice(-7);
-        }
-        return name;
-      });
-
-      filenameDisplay.innerText = names.length
-        ? "Selected: " + names.join(", ")
-        : "No files selected.";
-    });
-
     const imageScaleSlider = document.getElementById("imageScaleSlider");
     const imageScaleValue = document.getElementById("imageScaleValue");
 
     imageScaleSlider.addEventListener("input", function (e) {
       const scale = parseFloat(e.target.value);
-      imageScaleValue.innerText = scale.toFixed(1) + "×";
+      imageScaleValue.innerText = scale.toFixed(2) + "×";
 
       // Apply scale transform to each selected image
       selectedSlots.forEach((slot) => {
