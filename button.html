@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACME Button Template Maker</title>
+  <style>
+    :root {
+      --dark-royal-red: #8b0000;
+      --petrol: #005f5f;
+      --background: #111;
+      --accent: #ffffff;
+      --border: #ff4444;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      background: var(--background);
+      color: var(--accent);
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    #sidebar {
+      width: 100%;
+      max-width: 180px;
+      background: var(--dark-royal-red);
+      border-right: 4px solid var(--border);
+      padding: 10px;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    #sidebar h3 {
+      margin-top: 0;
+      font-weight: bold;
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 0.3em;
+    }
+
+    #imageGallery img {
+      width: 100%;
+      margin-bottom: 5px;
+      cursor: pointer;
+      border: 2px solid var(--accent);
+      background: var(--petrol);
+    }
+
+    #main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
+      background-color: var(--petrol);
+      border-left: 4px solid var(--border);
+    }
+
+    #controls {
+      padding: 1em;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1em;
+      justify-content: center;
+      background: var(--dark-royal-red);
+      border-bottom: 4px solid var(--border);
+    }
+
+    #controls input,
+    #controls button,
+    #controls label {
+      font-family: monospace;
+      background: var(--petrol);
+      color: var(--accent);
+      border: 2px solid var(--accent);
+      padding: 0.3em 0.5em;
+      font-size: 1em;
+    }
+
+    #controls button:hover {
+      background: var(--accent);
+      color: var(--dark-royal-red);
+      cursor: pointer;
+    }
+
+    #a4canvas {
+      background: var(--accent);
+      width: 210mm;
+      height: 297mm;
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: auto repeat(6, 1fr);
+      gap: 2mm;
+      padding: 6mm;
+      box-sizing: border-box;
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    .button-slot {
+      position: relative;
+      width: 28mm;
+      height: 28mm;
+      justify-self: center;
+      align-self: center;
+      overflow: hidden;
+      cursor: pointer;
+      transform-origin: center center; /* scale from the center */
+    }
+
+    .button-slot.selected {
+      border: 3px solid var(--border);
+    }
+
+    .overlay-inner,
+    .overlay-middle,
+    .overlay-outer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .overlay-inner {
+      width: 23mm;
+      height: 23mm;
+      border: 1px dashed lime;
+    }
+
+    .overlay-middle {
+      width: 25mm;
+      height: 25mm;
+      border: 1px dashed orange;
+    }
+
+    .overlay-outer {
+      width: 28mm;
+      height: 28mm;
+      border: 1px dashed red;
+    }
+
+    .button-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    .checkbox {
+      position: absolute;
+      top: -2.5px;
+      left: -3.5px;
+      z-index: 20;
+      accent-color: var(--dark-royal-red);
+    }
+
+    #scaleContainer {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: var(--dark-royal-red);
+      border: 2px solid var(--accent);
+      padding: 0.5em;
+      z-index: 100;
+      color: var(--accent);
+      font-family: monospace;
+    }
+    #scaleSlider {
+      width: 150px;
+      vertical-align: middle;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+      font-weight: bold;
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 90vw;
+      max-width: 300px;
+      background-color: var(--dark-royal-red);
+      color: var(--accent);
+      text-align: left;
+      border: 2px solid var(--accent);
+      padding: 10px;
+      position: absolute;
+      z-index: 30;
+      top: 20px;
+      left: 20px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #selectionControls {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5em;
+      align-items: center;
+      margin-block: 10px;
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      position: absolute;
+      top: 2em;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      max-width: 300px;
+      width: max-content;
+      background-color: var(--dark-royal-red);
+      color: var(--accent);
+      text-align: left;
+      border: 2px solid var(--accent);
+      padding: 10px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      white-space: normal;
+      overflow-wrap: break-word;
+      box-sizing: border-box;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .logo-on-canvas {
+      grid-column: 1 / -1;
+      width: 35mm;
+      height: auto;
+      justify-self: center;
+      align-self: start;
+    }
+
+    #controls button {
+      height: auto;
+      align-self: flex;
+    }
+
+    #count {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      height: 100%;
+      margin: 0 auto;
+    }
+/* Brutalist base style */
+.brutal-button {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  color: #000;
+  font-weight: bold;
+  border: 4px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  padding: 0.6em 1.2em;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  text-transform: uppercase;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.brutal-button:hover {
+  background: #ff4444;
+  color: #fff;
+}
+
+.brutal-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+/* Shine effect */
+.brutal-button.shiny::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transform: skewX(-25deg);
+  animation: shine 3s ease-in-out infinite;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0% {
+    left: -75%;
+  }
+  100% {
+    left: 125%;
+  }
+}
+
+  </style>
+</head>
+
+<body>
+  <div id="sidebar">
+    <h3>Uploads</h3>
+    <div id="imageGallery"></div>
+  </div>
+  <div id="main">
+    <h1>ACME Button Template Maker</h1>
+    <div id="controls">
+      <fieldset style="border:2px dashed var(--accent); padding:0.5em;">
+        <legend style="font-weight:bold; color:var(--accent);">Upload Images</legend>
+        <label>Select PNG or JPG files:</label><br />
+        <input type="file" id="imageLoader" accept="image/*" multiple />
+      </fieldset>
+
+      <fieldset style="border:2px dashed var(--accent); padding:0.5em;">
+        <legend style="font-weight:bold; color:var(--accent);">Image Offset</legend>
+        <label>X offset:<input type="number" id="offsetX" value="0" /></label><br />
+        <label>Y offset:<input type="number" id="offsetY" value="0" /></label>
+      </fieldset>
+
+      <!-- ===============
+           SCALE SLIDER
+           =============== -->
+      <fieldset style="border:2px dashed var(--accent); padding:0.5em;max-height: 55px;min-height: fit-content;">
+        <legend style="font-weight:bold; color:var(--accent);">Button Scale</legend>
+        <label>
+          Scale (0.5 – 1.5):
+          <input
+            type="range"
+            id="scaleSlider"
+            min="0.5"
+            max="1.5"
+            step="0.1"
+            value="1"
+          />
+          <span id="scaleValue">1.0×</span>
+        </label>
+                <legend style="font-weight:bold; color:var(--accent);"><br>adjust if your printer <br>does printer stuff</legend>
+      </fieldset>
+
+      <div id="selectionControls">
+        <div class="row">
+          <button onclick="selectAll()">Select All Buttons</button>
+          <button onclick="deselectAll()">Unselect All Buttons</button>
+        </div>
+      <div class="row" style="align-self: baseline;">
+          <button onclick="resetselectione()">Clear from Selected</button>
+          <button onclick="resetAll()">Clear All Buttons</button>
+                <p id="count"></p>
+        </div>
+      </div>
+
+      <p id="count"></p>
+<button id="exportBtn" class="brutal-button shiny" onclick="exportToPNG()">Export as PNG</button>
+
+      <span class="tooltip">❓
+        <span class="tooltiptext">
+          <strong>How to Use:</strong><br />
+          - Click a button or use the checkbox to select it<br />
+          - Upload an image to apply it to selected buttons<br />
+          - Adjust image position with X/Y offset (live update for all selected)<br />
+          - Click an uploaded image to reuse it<br />
+          - Use the “Scale” slider to shrink or enlarge all buttons uniformly<br />
+          - Export will render a clean printable PNG<br />
+          - Green = Safe Area, Orange = Button Face, Red = Bleed<br /><br />
+          <strong>Print Tips:</strong><br />
+          - Use "Actual Size" or 100% scale<br />
+          - Disable "Fit to Page" or similar options<br />
+          - Print on A4 paper without margins or scaling<br />
+          - Prefer high-resolution printers
+        </span>
+      </span>
+    </div>
+
+    <div id="a4canvas">
+      <img src="ⒶCME.png" alt="ACME Logo" class="logo-on-canvas" id="logo" />
+      <!-- Grid of button-slot DIVs is injected via JS -->
+    </div>
+    <p style="margin-top: 0.5em;">
+      Visit
+      <a
+        href="https://acme-prototypes.com/"
+        target="_blank"
+        style="color: var(--accent); text-decoration: underline;"
+        >acme-prototypes.com</a
+      >
+    </p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    const maxCols       = 5;
+    const maxRows       = 6;
+    const totalButtons  = maxCols * maxRows;
+    const a4canvas      = document.getElementById("a4canvas");
+    const countDisplay  = document.getElementById("count");
+    const imageGallery  = document.getElementById("imageGallery");
+
+    countDisplay.innerText = `Max Buttons per Page: ${totalButtons}`;
+
+    let selectedSlots   = new Set();
+    let imageMap        = new Map();
+    let uploadedImages  = [];
+
+    // 1) Build the 5×6 grid of button-slot DIVs
+    for (let i = 0; i < totalButtons; i++) {
+      const slot = document.createElement("div");
+      slot.classList.add("button-slot");
+      slot.dataset.index = i;
+
+      slot.innerHTML = `
+        <input type="checkbox"
+               class="checkbox"
+               onclick="event.stopPropagation(); toggleSlot(this.parentElement, this.checked);" />
+        <div class="overlay-inner"></div>
+        <div class="overlay-middle"></div>
+        <div class="overlay-outer"></div>
+      `;
+
+      // Clicking the slot (outside the checkbox) will toggle the checkbox & selection
+      slot.addEventListener("click", () => {
+        const checkbox = slot.querySelector(".checkbox");
+        checkbox.checked = !checkbox.checked;
+        toggleSlot(slot, checkbox.checked);
+      });
+
+      a4canvas.appendChild(slot);
+    }
+
+    function selectAll() {
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        const checkbox = slot.querySelector(".checkbox");
+        checkbox.checked = true;
+        slot.classList.add("selected");
+        selectedSlots.add(slot);
+      });
+      countDisplay.innerText = `Selected Buttons: ${selectedSlots.size}`;
+    }
+
+    function deselectAll() {
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        const checkbox = slot.querySelector(".checkbox");
+        checkbox.checked = false;
+        slot.classList.remove("selected");
+        selectedSlots.delete(slot);
+      });
+      countDisplay.innerText = `Selected Buttons: ${selectedSlots.size}`;
+    }
+
+    function resetselectione() {
+      // Remove images only from currently selected slots
+      selectedSlots.forEach((slot) => {
+        slot.querySelectorAll("img.button-image").forEach((img) => img.remove());
+        imageMap.delete(slot);
+      });
+    }
+
+    function resetAll() {
+      // Clear everything: unselect and remove all images
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        const checkbox = slot.querySelector(".checkbox");
+        checkbox.checked = false;
+        slot.classList.remove("selected");
+        slot.querySelectorAll("img.button-image").forEach((img) => img.remove());
+        selectedSlots.delete(slot);
+        imageMap.delete(slot);
+      });
+      countDisplay.innerText = `Selected Buttons: ${selectedSlots.size}`;
+    }
+
+    function toggleSlot(slot, checked) {
+      if (checked) {
+        slot.classList.add("selected");
+        selectedSlots.add(slot);
+      } else {
+        slot.classList.remove("selected");
+        selectedSlots.delete(slot);
+      }
+      countDisplay.innerText = `Selected Buttons: ${selectedSlots.size}`;
+    }
+
+    // 2) When an image is chosen, only apply it to slots that are already selected
+    document.getElementById("imageLoader").addEventListener("change", function (e) {
+      const files = e.target.files;
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const imgSrc = event.target.result;
+          uploadedImages.push(imgSrc);
+
+          // Add thumbnail to sidebar
+          const galleryImg = document.createElement("img");
+          galleryImg.src = imgSrc;
+          galleryImg.addEventListener("click", () => applyImageToSelected(imgSrc));
+          imageGallery.appendChild(galleryImg);
+
+          // Immediately apply to whichever slots are currently selected
+          applyImageToSelected(imgSrc);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    function applyImageToSelected(imgSrc) {
+      // Only loop through currently-selected slots
+      selectedSlots.forEach((slot) => {
+        // Remove any old <img> inside this slot
+        slot.querySelectorAll("img.button-image").forEach((oldImg) => oldImg.remove());
+        const img = document.createElement("img");
+        img.src = imgSrc;
+        img.classList.add("button-image");
+        slot.appendChild(img);
+        imageMap.set(slot, { x: 0, y: 0, src: imgSrc });
+      });
+    }
+
+    function updateOffsets() {
+      const x = parseInt(document.getElementById("offsetX").value, 10);
+      const y = parseInt(document.getElementById("offsetY").value, 10);
+      selectedSlots.forEach((slot) => {
+        const img = slot.querySelector("img.button-image");
+        if (img) {
+          img.style.objectPosition = `${x}px ${y}px`;
+        }
+      });
+    }
+
+    document.getElementById("offsetX").addEventListener("input", updateOffsets);
+    document.getElementById("offsetY").addEventListener("input", updateOffsets);
+
+    // ================
+    // SCALE SLIDER LOGIC
+    // ================
+    const scaleSlider     = document.getElementById("scaleSlider");
+    const scaleValueLabel = document.getElementById("scaleValue");
+
+    scaleSlider.addEventListener("input", function (e) {
+      const scale = parseFloat(e.target.value);
+      // Update numeric label, e.g. “1.2×”
+      scaleValueLabel.innerText = scale.toFixed(1) + "×";
+      // Apply transform: scale(...) to every .button-slot
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        slot.style.transform = `scale(${scale})`;
+      });
+    });
+
+    // 3) Export to PNG
+    function exportToPNG() {
+      // Wait for every <img> in #a4canvas to finish loading
+      const imgs = a4canvas.querySelectorAll("img");
+      const loadPromises = Array.from(imgs).map((img) => {
+        if (img.complete) {
+          return Promise.resolve();
+        }
+        return new Promise((resolve) => {
+          img.onload  = () => resolve();
+          img.onerror = () => resolve();
+        });
+      });
+
+      Promise.all(loadPromises).then(() => {
+        // Hide overlays & checkboxes
+        document.querySelectorAll(
+          ".overlay-inner, .overlay-middle, .overlay-outer, .checkbox"
+        ).forEach((el) => (el.style.display = "none"));
+
+        // Remove “.selected” borders so they don’t appear in the export
+        document.querySelectorAll(".button-slot").forEach((slot) => {
+          slot.classList.remove("selected");
+        });
+
+        // Render with html2canvas
+        html2canvas(a4canvas, {
+          scale: 2,
+          useCORS: false,     // images are data-URLs
+          allowTaint: true,
+          backgroundColor: null, // transparent background
+        }).then((canvas) => {
+          // Restore overlays & checkboxes right after rendering
+          document.querySelectorAll(
+            ".overlay-inner, .overlay-middle, .overlay-outer, .checkbox"
+          ).forEach((el) => (el.style.display = ""));
+
+          // Trigger download
+          const link = document.createElement("a");
+          link.download = "button-sheet.png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        });
+      });
+    }
+  </script>
+</body>
+</html>
