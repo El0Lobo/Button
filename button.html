@@ -40,13 +40,17 @@
 
     #sidebar {
       width: 100%;
-      max-width: 180px;
+      max-width: 200px;
       background: var(--dark-royal-red);
       border-right: 4px solid var(--border);
       padding: 10px;
       overflow-y: auto;
       box-sizing: border-box;
       background-image: url('concrete-wall.png');
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding-top: 2rem;
     }
 
     #controlSidebar {
@@ -547,7 +551,7 @@
         <strong>How to Use:</strong><br />
         - Click a button or use the checkbox to select it<br />
         - Upload an image to apply it to selected buttons<br />
-        - Adjust image position with X/Y offset (live update for all selected)<br />
+        - Adjust image position with X/Y offset and the image scale slider (live update for all selected)<br />
         - Click an uploaded image to reuse it<br />
         - Use the “Scale” slider to shrink or enlarge all buttons uniformly<br />
         - Export will render a clean printable PNG<br />
@@ -561,7 +565,7 @@
     </span>
       <fieldset class="control upload" style="border:2px dashed var(--accent); padding:0.5em;max-height: 175px;min-height: fit-content;">
         <legend style="font-weight:bold; color:var(--accent);">Upload Images</legend>
-        <label>Select PNG or JPG files:</label><br />
+        <label>Select Image files:</label><br />
         <div style="overflow: hidden;">
           <input type="file" id="imageLoader" accept="image/*" multiple="" style="width: 100%;">
         </div>
