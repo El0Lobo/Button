@@ -40,10 +40,12 @@
 
     #sidebar {
       width: 100%;
-      max-width: 200px;
+      max-width: 300px;
+      flex: 0 0 300px;
       background: var(--dark-royal-red);
       border-right: 4px solid var(--border);
-      padding: 10px;
+      padding: 20px;
+      padding-top: 2rem;
       overflow-y: auto;
       box-sizing: border-box;
       background-image: url('concrete-wall.png');
@@ -56,13 +58,18 @@
     #controlSidebar {
       width: 100%;
       max-width: 300px;
+      flex: 0 0 300px;
       background: var(--dark-royal-red);
       border-left: 4px solid var(--border);
-      padding: 10px;
-      overflow: visible;
+      padding: 20px 36px 20px 24px;
+      padding-top: 2rem;
+      overflow-y: auto;
+      overflow-x: visible;
       box-sizing: border-box;
       background-image: url('concrete-wall.png');
-      position: relative;
+      position: sticky;
+      top: 0;
+      height: 100vh;
       z-index: 10;
     }
 
@@ -100,22 +107,57 @@
       text-transform: uppercase;
       letter-spacing: 0.2rem;
       margin-block: 1rem 0.5rem;
-      background: var(--dark-royal-red);
+      background: linear-gradient(135deg, #a40000 0%, #820000 40%, #5c0000 100%);
       color: var(--accent);
-      padding: 0.5em 1.5em;
+      padding: 0.6em 1.8em;
       border: 4px solid var(--border);
-      box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.65);
+      box-shadow:
+        inset 0 2px 6px rgba(255, 255, 255, 0.35),
+        inset 0 -6px 8px rgba(0, 0, 0, 0.55),
+        10px 12px 0 rgba(0, 0, 0, 0.65);
+      text-shadow:
+        0 1px 1px rgba(0, 0, 0, 0.8),
+        0 -1px 1px rgba(255, 255, 255, 0.45),
+        0 3px 0 rgba(0, 0, 0, 0.6),
+        0 4px 6px rgba(0, 0, 0, 0.35),
+        0 -2px 4px rgba(255, 255, 255, 0.25);
+      position: relative;
+      isolation: isolate;
+    }
+
+    #main h1::before,
+    #main h1::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    #main h1::before {
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      mix-blend-mode: screen;
+      opacity: 0.7;
+    }
+
+    #main h1::after {
+      border: 2px solid rgba(0, 0, 0, 0.6);
+      top: 12px;
+      left: 12px;
+      right: 4px;
+      bottom: 4px;
+      opacity: 0.5;
     }
 
     #controls {
       padding: 0;
-      margin: 0;
       display: flex;
       flex-direction: column;
       gap: 1em;
-
+      margin: -14px;
       box-sizing: border-box;
-      position: fixed;
+      position: relative;
     }
 
     .action-bar {
@@ -145,14 +187,31 @@
     #controls input,
     #controls button,
     #controls label,
-    #selectionControls button,
-    #selectionControls label {
+    #sidebar input,
+    #sidebar button,
+    #sidebar label {
       font-family: monospace;
       background: var(--petrol);
       color: var(--accent);
       border: 2px solid var(--accent);
-      padding: 0.3em 0.5em;
+      width: 100%;
+      box-sizing: border-box;
+
       font-size: 1em;
+    }
+
+    #controls label,
+    #sidebar label {
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+    }
+
+    #controls label input,
+    #sidebar label input,
+    #controls label select,
+    #sidebar label select {
+      flex: 1;
     }
 
     #controls button:hover,
@@ -196,30 +255,47 @@
     }
 
     #canvasZoomControls {
-      position: sticky;
-      bottom: 0.5rem;
-      align-self: flex-end;
-      background: var(--dark-royal-red);
-      border: 2px solid var(--accent);
+      width: 100%;
       color: var(--accent);
-      padding: 0.4em 0.8em;
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.65);
-      width: min(280px, 90%);
     }
 
-    #canvasZoomControls label {
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3em;
+      width: 100%;
+    }
+
+    .slider-group label {
+      width: 100%;
+      font-weight: bold;
+      background: transparent;
+      border: none;
+      padding: 0;
+      display: block;
+    }
+
+    .slider-row {
       display: flex;
       align-items: center;
       gap: 0.5em;
       width: 100%;
-      font-weight: bold;
+      background: var(--petrol);
+      border: 2px solid var(--accent);
+      padding: 0.35em 0.45em;
+      box-sizing: border-box;
     }
 
-    #canvasZoomControls input[type="range"] {
+    .slider-row input[type="range"] {
       flex: 1;
+      background: transparent;
+      border: none;
+    }
+
+    .slider-row span {
+      min-width: 3.5em;
+      text-align: right;
+      font-weight: bold;
     }
 
     .button-slot {
@@ -413,13 +489,15 @@
     }
 
     #controlSidebar .help-tooltip .tooltiptext {
-      left: auto;
-      right: calc(100% + 12px);
+      left: 0;
+      right: auto;
       transform: none;
+      width: 100%;
+      max-width: none;
+      margin-top: 0.5em;
+      top: 100%;
       border-left-width: 2px;
       padding-left: 12px;
-      margin: 0;
-      top: 0;
       z-index: 100;
     }
 
@@ -509,6 +587,13 @@
 
 <body>
   <div id="sidebar">
+    <fieldset class="control upload" style="border:2px dashed var(--accent); padding:0.5em; max-height: 175px; min-height: fit-content; margin-bottom: 0.75em;">
+      <legend style="font-weight:bold; color:var(--accent);">Upload Images</legend>
+      <label>Select Image files:</label><br />
+      <div style="overflow: hidden;">
+        <input type="file" id="imageLoader" accept="image/*" multiple="" style="width: 100%;">
+      </div>
+    </fieldset>
     <h3>Uploads</h3>
     <div id="imageGallery"></div>
   </div>
@@ -527,13 +612,6 @@
           <img src="ⒶCME.png" alt="ACME Logo" class="logo-on-canvas" id="logo" />
           <!-- Grid of button-slot DIVs is injected via JS -->
         </div>
-      </div>
-      <div id="canvasZoomControls">
-        <label>
-          Canvas Zoom
-          <input type="range" id="canvasZoomSlider" min="0.5" max="1.5" step="0.05" value="1">
-          <span id="canvasZoomValue">1.00×</span>
-        </label>
       </div>
     </div>
     <p style="margin-top: 0.5em;">
@@ -563,42 +641,53 @@
         - Prefer high-resolution printers
       </span>
     </span>
-      <fieldset class="control upload" style="border:2px dashed var(--accent); padding:0.5em;max-height: 175px;min-height: fit-content;">
-        <legend style="font-weight:bold; color:var(--accent);">Upload Images</legend>
-        <label>Select Image files:</label><br />
-        <div style="overflow: hidden;">
-          <input type="file" id="imageLoader" accept="image/*" multiple="" style="width: 100%;">
-        </div>
-        <legend style="font-weight:bold; color:var(--accent);">Button Background Color</legend>
-        <input type="color" id="buttonBgColorPicker" value="#ffffff" style="top: 6px;position: relative;">
-        <button onclick="applyBackgroundColor()">Apply to Selected</button>
-      </fieldset>
-
       <fieldset class="control image-offset" style="border:2px dashed var(--accent); padding:0.5em;">
         <legend style="font-weight:bold; color:var(--accent);">Image Offset</legend>
         <label>X offset:<input type="number" id="offsetX" value="0" /></label><br />
         <label>Y offset:<input type="number" id="offsetY" value="0" /></label>
+        <br><br>
         <legend style="font-weight:bold; color:var(--accent);">Image Scale</legend>
-        <label style="top: -11px;position: relative;">
-          Scale (0.2 – 3.0):
-          <input type="range" id="imageScaleSlider" min="0.2" max="3" step="0.01" value="1"
-            style="position: relative;top: 11px;">
-          <span id="imageScaleValue">1.00×</span>
-        </label>
+        <div class="slider-group">
+          <label for="imageScaleSlider">Scale (0.2 – 3.0):</label>
+          <div class="slider-row">
+            <input type="range" id="imageScaleSlider" min="0.2" max="3" step="0.01" value="1">
+            <span id="imageScaleValue">1.00×</span>
+          </div>
+        </div>
         <button type="button" class="small-reset" onclick="resetImageAdjustments()">Reset Image Offset & Scale</button>
+      </fieldset>
+
+      <fieldset class="control background-color" style="border:2px dashed var(--accent); padding:0.5em;">
+        <legend style="font-weight:bold; color:var(--accent);">Button Background Color</legend>
+        <input type="color" id="buttonBgColorPickerRight" value="#ffffff" style="top: 6px; position: relative; width: 100%;">
+        <button type="button" style="margin-top: 0.5em; width: 100%;" onclick="applyBackgroundColor('buttonBgColorPickerRight')">Apply to Selected</button>
       </fieldset>
 
       <fieldset class="control button-scale" style="border:2px dashed var(--accent); padding:0.75em 1.25em 1em;min-height: fit-content;">
         <legend style="font-weight:bold; color:var(--accent);">Button Scale</legend>
-        <label>
-          Scale (0.5 – 1.5):
-          <input type="range" id="scaleSlider" min="0.5" max="1.5" step="0.01" value="1"
-          style="position: relative;top: -2px;"> 
-          <span id="scaleValue">1.00×</span>
-        </label>
+        <div class="slider-group">
+          <label for="scaleSlider">Scale (0.5 – 1.5):</label>
+          <div class="slider-row">
+            <input type="range" id="scaleSlider" min="0.5" max="1.5" step="0.01" value="1">
+            <span id="scaleValue">1.00×</span>
+          </div>
+        </div>
         <legend style="font-weight:bold; color:var(--accent);"><br>adjust if your printer <br>does printer stuff
         </legend>
         <button type="button" class="small-reset" onclick="resetButtonScale()">Reset Button Scale</button>
+      </fieldset>
+
+      <fieldset class="control canvas-zoom" style="border:2px dashed var(--accent); padding:0.5em;">
+        <legend style="font-weight:bold; color:var(--accent);">Canvas Zoom</legend>
+        <div id="canvasZoomControls">
+          <div class="slider-group">
+            <label for="canvasZoomSlider">Zoom:</label>
+            <div class="slider-row">
+              <input type="range" id="canvasZoomSlider" min="0.5" max="1.5" step="0.05" value="1">
+              <span id="canvasZoomValue">1.00×</span>
+            </div>
+          </div>
+        </div>
       </fieldset>
 
       <div class="control action-bar">
@@ -653,8 +742,21 @@
       a4canvas.appendChild(slot);
     }
 
-    function applyBackgroundColor() {
-      const color = document.getElementById("buttonBgColorPicker").value;
+    function applyBackgroundColor(pickerId) {
+      const leftPicker = document.getElementById("buttonBgColorPicker");
+      const rightPicker = document.getElementById("buttonBgColorPickerRight");
+      let sourcePicker = pickerId ? document.getElementById(pickerId) : null;
+      if (!sourcePicker) {
+        sourcePicker = rightPicker || leftPicker;
+      }
+      const color = sourcePicker ? sourcePicker.value : "#ffffff";
+
+      if (leftPicker && leftPicker !== sourcePicker) {
+        leftPicker.value = color;
+      }
+      if (rightPicker && rightPicker !== sourcePicker) {
+        rightPicker.value = color;
+      }
 
       selectedSlots.forEach((slot) => {
         const content = slot.querySelector(".button-content");
@@ -1003,18 +1105,28 @@
     const imageScaleValue = document.getElementById("imageScaleValue");
 
     function resetImageAdjustments() {
+      const defaultOffset = "0";
+      const defaultScale = "1";
       const offsetXInput = document.getElementById("offsetX");
       const offsetYInput = document.getElementById("offsetY");
-      offsetXInput.value = "0";
-      offsetYInput.value = "0";
-      imageScaleSlider.value = "1";
+
+      offsetXInput.value = defaultOffset;
+      offsetYInput.value = defaultOffset;
+      imageScaleSlider.value = defaultScale;
       imageScaleValue.innerText = "1.00×";
 
-      document.querySelectorAll(".button-content img.button-image").forEach((img) => {
-        img.dataset.offsetX = "0";
-        img.dataset.offsetY = "0";
-        img.dataset.scale = "1";
-        applyImageTransform(img);
+      if (!selectedSlots.size) {
+        return; // no selection, just prep inputs for the next selection
+      }
+
+      selectedSlots.forEach((slot) => {
+        const img = slot.querySelector(".button-content img.button-image");
+        if (img) {
+          img.dataset.offsetX = defaultOffset;
+          img.dataset.offsetY = defaultOffset;
+          img.dataset.scale = defaultScale;
+          applyImageTransform(img);
+        }
       });
     }
 
