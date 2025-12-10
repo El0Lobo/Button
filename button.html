@@ -309,7 +309,7 @@
       margin: 1em 0;
       position: sticky;
       top: 0;
-      z-index: 20;
+      z-index: 5;
       padding: 0.75em 0;
     }
 
@@ -386,6 +386,10 @@
     #controls button {
       height: auto;
       align-self: flex;
+    }
+    .small-reset {
+      margin-top: 0.5em;
+      width: 100%;
     }
 
     #count {
@@ -520,6 +524,7 @@
             style="position: relative;top: 11px;">
           <span id="imageScaleValue">1.00×</span>
         </label>
+        <button type="button" class="small-reset" onclick="resetImageAdjustments()">Reset Image Offset & Scale</button>
       </fieldset>
 
       <fieldset class="control button-scale" style="border:2px dashed var(--accent); padding:0.75em 1.25em 1em;min-height: fit-content;">
@@ -532,6 +537,7 @@
         </label>
         <legend style="font-weight:bold; color:var(--accent);"><br>adjust if your printer <br>does printer stuff
         </legend>
+        <button type="button" class="small-reset" onclick="resetButtonScale()">Reset Button Scale</button>
       </fieldset>
 
       <div class="control action-bar">
@@ -811,6 +817,17 @@
       });
     });
 
+    function resetButtonScale() {
+      const defaultScale = 1;
+      scaleSlider.value = defaultScale.toString();
+      scaleValueLabel.innerText = "1.00×";
+      appliedCanvasScale = defaultScale;
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        slot.dataset.slotScale = defaultScale;
+        slot.style.transform = "scale(1)";
+      });
+    }
+
     // 3) Export to PNG
     let appliedCanvasScale = 1;
     function exportToPNG() {
@@ -895,6 +912,22 @@
     }
     const imageScaleSlider = document.getElementById("imageScaleSlider");
     const imageScaleValue = document.getElementById("imageScaleValue");
+
+    function resetImageAdjustments() {
+      const offsetXInput = document.getElementById("offsetX");
+      const offsetYInput = document.getElementById("offsetY");
+      offsetXInput.value = "0";
+      offsetYInput.value = "0";
+      imageScaleSlider.value = "1";
+      imageScaleValue.innerText = "1.00×";
+
+      document.querySelectorAll(".button-content img.button-image").forEach((img) => {
+        img.dataset.offsetX = "0";
+        img.dataset.offsetY = "0";
+        img.dataset.scale = "1";
+        applyImageTransform(img);
+      });
+    }
 
     imageScaleSlider.addEventListener("input", function (e) {
       const scale = parseFloat(e.target.value);
