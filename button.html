@@ -89,6 +89,41 @@
       background: var(--petrol);
     }
 
+    .gallery-item {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 0.6em;
+    }
+
+    .gallery-item img {
+      width: 100%;
+      display: block;
+    }
+
+    .gallery-delete {
+      position: absolute;
+      top: 2px;
+      right: -4px;
+      color: red;
+      border-radius: 50%;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0 5px;
+      z-index: 10;
+    }
+
+    details.gallery-toggle {
+      border: 2px dashed var(--accent);
+      padding: 0.5em;
+      margin-top: 0.75em;
+    }
+
+    details.gallery-toggle summary {
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     #main {
       display: flex;
       flex-direction: column;
@@ -331,7 +366,8 @@
 
     .overlay-inner,
     .overlay-middle,
-    .overlay-outer {
+    .overlay-outer,
+    .overlay-cutline {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -363,6 +399,14 @@
       box-shadow: none;
       z-index: 5;
       pointer-events: none;
+    }
+
+    .overlay-cutline {
+      width: 28mm;
+      height: 28mm;
+      border: 1px solid #00ffff;
+      z-index: 40;
+      display: none;
     }
 
     .button-content img.button-image {
@@ -596,6 +640,10 @@
     </fieldset>
     <h3>Uploads</h3>
     <div id="imageGallery"></div>
+    <details class="gallery-toggle">
+      <summary>Examples (Standards)</summary>
+      <div id="standardGallery"></div>
+    </details>
   </div>
   <div id="main">
     <h1>ACME Button Template Maker</h1>
@@ -690,6 +738,14 @@
         </div>
       </fieldset>
 
+      <fieldset class="control cutline-toggle" style="border:2px dashed var(--accent); padding:0.5em;">
+        <legend style="font-weight:bold; color:var(--accent);">Cutline Overlay</legend>
+        <label>
+          Extra cutline on top
+          <input type="checkbox" id="extraCutlineToggle">
+        </label>
+      </fieldset>
+
       <div class="control action-bar">
         <p id="count"></p>
         <button id="exportBtn" class="brutal-button shiny" onclick="exportToPNG()">Export as PNG</button>
@@ -706,6 +762,7 @@
     const a4canvas = document.getElementById("a4canvas");
     const countDisplay = document.getElementById("count");
     const imageGallery = document.getElementById("imageGallery");
+    const standardGallery = document.getElementById("standardGallery");
     const canvasZoomSlider = document.getElementById("canvasZoomSlider");
     const canvasZoomValue = document.getElementById("canvasZoomValue");
 
@@ -730,6 +787,7 @@
         <div class="overlay-inner"></div>
         <div class="overlay-middle"></div>
         <div class="overlay-outer"></div>
+        <div class="overlay-cutline"></div>
       `;
 
       // Clicking the slot (outside the checkbox) will toggle the checkbox & selection
@@ -740,6 +798,85 @@
       });
 
       a4canvas.appendChild(slot);
+    }
+
+    const standardImageFiles = [
+      "lgbtq+.png",
+      "palestine.png",
+      "equali-tea.png",
+      "gayer.png",
+      "smoky.png",
+      "bantifa.png",
+      "adhs-antifa.png",
+      "good-night-white-pride.png",
+      "no-nazis.png",
+      "palestine-2.png",
+      "daria.png",
+      "Pigeon.png",
+      "oracle.png",
+      "june.png",
+      "cat.png",
+      "good-night-cat.png",
+      "A.png",
+      "Lizzy.png",
+      "patriarchy.png",
+      "Flinta.png",
+      "innen.png",
+      "eat the rich.png",
+      "eat the rich2.png"
+    ];
+
+    function createGalleryItem({ imgSrc, onClick, removable, onRemove }) {
+      const galleryItem = document.createElement("div");
+      galleryItem.classList.add("gallery-item");
+
+      const galleryImg = document.createElement("img");
+      galleryImg.src = imgSrc;
+      galleryImg.style.cursor = "pointer";
+      galleryImg.addEventListener("click", onClick);
+
+      galleryItem.appendChild(galleryImg);
+
+      if (removable) {
+        const deleteBtn = document.createElement("span");
+        deleteBtn.innerHTML = "❌";
+        deleteBtn.title = "Remove image";
+        deleteBtn.className = "gallery-delete";
+        deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (onRemove) onRemove();
+          galleryItem.remove();
+        });
+        galleryItem.appendChild(deleteBtn);
+      }
+
+      return galleryItem;
+    }
+
+    function preloadStandardImages() {
+      if (!standardGallery) return;
+      standardImageFiles.forEach((filename) => {
+        const imgSrc = `standards/${filename}`;
+        const item = createGalleryItem({
+          imgSrc,
+          onClick: () => applyImageToSelected(imgSrc),
+          removable: false
+        });
+        standardGallery.appendChild(item);
+      });
+    }
+
+    const extraCutlineToggle = document.getElementById("extraCutlineToggle");
+    function updateExtraCutline() {
+      const show = extraCutlineToggle && extraCutlineToggle.checked;
+      document.querySelectorAll(".overlay-cutline").forEach((el) => {
+        el.style.display = show ? "block" : "none";
+      });
+    }
+
+    if (extraCutlineToggle) {
+      extraCutlineToggle.addEventListener("change", updateExtraCutline);
+      updateExtraCutline();
     }
 
     function applyBackgroundColor(pickerId) {
@@ -852,39 +989,15 @@
 
           // Add thumbnail to sidebar
           // Add thumbnail with delete button to sidebar
-          const galleryItem = document.createElement("div");
-          galleryItem.classList.add("gallery-item");
-          galleryItem.style.position = "relative";
-          galleryItem.style.display = "inline-block";
-
-          const galleryImg = document.createElement("img");
-          galleryImg.src = imgSrc;
-          galleryImg.style.width = "100%";
-          galleryImg.style.display = "block";
-          galleryImg.style.cursor = "pointer";
-          galleryImg.addEventListener("click", () => applyImageToSelected(imgSrc));
-
-          const deleteBtn = document.createElement("span");
-          deleteBtn.innerHTML = "❌";
-          deleteBtn.title = "Remove image";
-          deleteBtn.style.position = "absolute";
-          deleteBtn.style.top = "2px";
-          deleteBtn.style.right = "-4px";
-          deleteBtn.style.color = "red";
-          deleteBtn.style.borderRadius = "50%";
-          deleteBtn.style.fontWeight = "bold";
-          deleteBtn.style.cursor = "pointer";
-          deleteBtn.style.padding = "0 5px";
-          deleteBtn.style.zIndex = "10";
-          deleteBtn.addEventListener("click", (e) => {
-            e.stopPropagation(); // prevent triggering image click
-            galleryItem.remove();
-            // Optional: Remove from uploadedImages array if needed
-            uploadedImages = uploadedImages.filter(src => src !== imgSrc);
+          const galleryItem = createGalleryItem({
+            imgSrc,
+            onClick: () => applyImageToSelected(imgSrc),
+            removable: true,
+            onRemove: () => {
+              uploadedImages = uploadedImages.filter(src => src !== imgSrc);
+            }
           });
 
-          galleryItem.appendChild(galleryImg);
-          galleryItem.appendChild(deleteBtn);
           imageGallery.appendChild(galleryItem);
 
 
@@ -1050,6 +1163,18 @@
           el.style.zIndex = "0";
         });
 
+        const topCutlineTweaks = [];
+        document.querySelectorAll(".overlay-cutline").forEach((el) => {
+          topCutlineTweaks.push({ el, cssText: el.style.cssText });
+          if (el.style.display !== "none") {
+            el.style.boxSizing = "border-box";
+            el.style.border = "1px solid #000";
+            el.style.borderRadius = "50%";
+            el.style.background = "transparent";
+            el.style.zIndex = "15";
+          }
+        });
+
         document.querySelectorAll(".button-slot").forEach((slot) => {
           slot.classList.remove("selected");
         });
@@ -1095,6 +1220,9 @@
               hiddenCheck.forEach((el) => (el.style.display = ""));
               hiddenOverlayHelpers.forEach((el) => (el.style.visibility = ""));
               outerRingTweaks.forEach(({ el, cssText }) => {
+                el.style.cssText = cssText;
+              });
+              topCutlineTweaks.forEach(({ el, cssText }) => {
                 el.style.cssText = cssText;
               });
             });
@@ -1158,6 +1286,8 @@
       imageScaleSlider.value = "1";
       imageScaleValue.innerText = "1.00×";
     });
+
+    preloadStandardImages();
 
   </script>
 
