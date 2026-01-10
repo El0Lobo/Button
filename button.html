@@ -284,7 +284,7 @@
       padding: 6mm;
       box-sizing: border-box;
       overflow: hidden;
-      max-width: 100%;
+      flex: 0 0 auto;
       transform-origin: top center;
       transition: transform 0.2s ease;
     }
@@ -810,6 +810,7 @@
     const maxRows = 6;
     const totalButtons = maxCols * maxRows;
     const a4canvas = document.getElementById("a4canvas");
+    const canvasWrapper = document.getElementById("canvasWrapper");
     const countDisplay = document.getElementById("count");
     const imageGallery = document.getElementById("imageGallery");
     const standardGallery = document.getElementById("standardGallery");
@@ -1131,6 +1132,7 @@
     document.getElementById("offsetY").addEventListener("input", updateOffsets);
 
     // Canvas zoom control (preview only)
+    let userSetCanvasZoom = false;
     function setCanvasZoom(value) {
       currentCanvasZoom = value;
       if (canvasZoomValue) {
@@ -1139,11 +1141,36 @@
       a4canvas.style.transform = `scale(${value})`;
     }
 
+    function autoFitCanvasZoom() {
+      if (!canvasWrapper) return;
+      const baseWidth = a4canvas.offsetWidth || 0;
+      const baseHeight = a4canvas.offsetHeight || 0;
+      if (!baseWidth || !baseHeight) return;
+      const availableWidth = canvasWrapper.clientWidth || baseWidth;
+      const wrapperRect = canvasWrapper.getBoundingClientRect();
+      const availableHeight = Math.max(200, window.innerHeight - wrapperRect.top - 20);
+      const canUseLargeZoom =
+        availableWidth >= baseWidth * 1.2 &&
+        availableHeight >= baseHeight * 1.2;
+      const fitZoom = Math.min(
+        1,
+        availableWidth / baseWidth,
+        availableHeight / baseHeight
+      );
+      const targetZoom = canUseLargeZoom ? 1.2 : fitZoom;
+      const clamped = Math.max(0.5, Math.min(1.5, targetZoom));
+      if (canvasZoomSlider) {
+        canvasZoomSlider.value = clamped.toFixed(2);
+      }
+      setCanvasZoom(clamped);
+    }
+
     if (canvasZoomSlider) {
       const initialZoom = parseFloat(canvasZoomSlider.value) || 1;
       setCanvasZoom(initialZoom);
       canvasZoomSlider.addEventListener("input", (e) => {
         const zoom = parseFloat(e.target.value) || 1;
+        userSetCanvasZoom = true;
         setCanvasZoom(zoom);
       });
     }
@@ -1338,6 +1365,18 @@
     });
 
     preloadStandardImages();
+
+    window.addEventListener("load", () => {
+      if (!userSetCanvasZoom) {
+        autoFitCanvasZoom();
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (!userSetCanvasZoom) {
+        autoFitCanvasZoom();
+      }
+    });
 
   </script>
 
