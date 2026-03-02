@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACME Button Template Maker</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <style>
+    :root {
+      --dark-royal-red: #8b0000;
+      --petrol: #005f5f;
+      --background: #111;
+      --accent: #ffffff;
+      --border: #ff4444;
+      --bleed-border: rgba(255, 68, 68, 0.75);
+      --bleed-width: 2.5px;
+    }
+
+    input[type="file"] {
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      display: inline-block;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      background: var(--background);
+      color: var(--accent);
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      background-image: url('concrete-wall.png');
+    }
+
+    #sidebar {
+      width: 100%;
+      max-width: 300px;
+      flex: 0 0 300px;
+      background: var(--dark-royal-red);
+      border-right: 4px solid var(--border);
+      padding: 20px;
+      padding-top: 2rem;
+      overflow-y: auto;
+      box-sizing: border-box;
+      background-image: url('concrete-wall.png');
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding-top: 2rem;
+    }
+
+    #controlSidebar {
+      width: 100%;
+      max-width: 300px;
+      flex: 0 0 300px;
+      background: var(--dark-royal-red);
+      border-left: 4px solid var(--border);
+      padding: 20px 36px 20px 24px;
+      padding-top: 2rem;
+      overflow-y: auto;
+      overflow-x: visible;
+      box-sizing: border-box;
+      background-image: url('concrete-wall.png');
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 10;
+    }
+
+    #sidebar h3 {
+      margin-top: 0;
+      font-weight: bold;
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 0.3em;
+    }
+
+    #imageGallery img {
+      width: 100%;
+      margin-bottom: 5px;
+      cursor: pointer;
+      border: 2px solid var(--accent);
+      background: var(--petrol);
+    }
+
+    .gallery-item {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 0.6em;
+    }
+
+    .gallery-item img {
+      width: 100%;
+      display: block;
+    }
+
+    .gallery-delete {
+      position: absolute;
+      top: 2px;
+      right: -4px;
+      color: red;
+      border-radius: 50%;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0 5px;
+      z-index: 10;
+    }
+
+    details.gallery-toggle {
+      border: 2px dashed var(--accent);
+      padding: 0.5em;
+      margin-top: 0.75em;
+    }
+
+    details.gallery-toggle summary {
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
+      background-color: var(--petrol);
+      border-left: 4px solid var(--border);
+      background-image: url('concrete-wall.png');
+    }
+
+    #main h1 {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      text-transform: uppercase;
+      letter-spacing: 0.2rem;
+      margin-block: 1rem 0.5rem;
+      background: linear-gradient(135deg, #a40000 0%, #820000 40%, #5c0000 100%);
+      color: var(--accent);
+      padding: 0.6em 1.8em;
+      border: 4px solid var(--border);
+      box-shadow:
+        inset 0 2px 6px rgba(255, 255, 255, 0.35),
+        inset 0 -6px 8px rgba(0, 0, 0, 0.55),
+        10px 12px 0 rgba(0, 0, 0, 0.65);
+      text-shadow:
+        0 1px 1px rgba(0, 0, 0, 0.8),
+        0 -1px 1px rgba(255, 255, 255, 0.45),
+        0 3px 0 rgba(0, 0, 0, 0.6),
+        0 4px 6px rgba(0, 0, 0, 0.35),
+        0 -2px 4px rgba(255, 255, 255, 0.25);
+      position: relative;
+      isolation: isolate;
+    }
+
+    #main h1::before,
+    #main h1::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    #main h1::before {
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      mix-blend-mode: screen;
+      opacity: 0.7;
+    }
+
+    #main h1::after {
+      border: 2px solid rgba(0, 0, 0, 0.6);
+      top: 12px;
+      left: 12px;
+      right: 4px;
+      bottom: 4px;
+      opacity: 0.5;
+    }
+
+    #controls {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      margin: -14px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .action-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75em;
+    }
+
+    .action-bar #count {
+      justify-content: center;
+    }
+
+    .action-bar #exportBtn {
+      width: 100%;
+    }
+
+    #controlSidebar .help-tooltip {
+      display: block;
+      text-align: right;
+      margin-bottom: 0.5em;
+      cursor: help;
+      position: relative;
+      z-index: 50;
+    }
+
+    #controls input,
+    #controls button,
+    #controls label,
+    #sidebar input,
+    #sidebar button,
+    #sidebar label {
+      font-family: monospace;
+      background: var(--petrol);
+      color: var(--accent);
+      border: 2px solid var(--accent);
+      width: 100%;
+      box-sizing: border-box;
+
+      font-size: 1em;
+    }
+
+    #controls label,
+    #sidebar label {
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+    }
+
+    #controls label input,
+    #sidebar label input,
+    #controls label select,
+    #sidebar label select {
+      flex: 1;
+    }
+
+    #controls button:hover,
+    #selectionControls button:hover {
+      background: var(--accent);
+      color: var(--dark-royal-red);
+      cursor: pointer;
+    }
+
+    #canvasArea {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+    }
+
+    #canvasWrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      overflow: auto;
+    }
+
+    #a4canvas {
+      background: var(--accent);
+      width: 210mm;
+      height: 297mm;
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: auto repeat(6, 1fr);
+      gap: 2mm;
+      padding: 6mm;
+      box-sizing: border-box;
+      overflow: hidden;
+      flex: 0 0 auto;
+      transform-origin: top center;
+      transition: transform 0.2s ease;
+    }
+
+    #canvasZoomControls {
+      width: 100%;
+      color: var(--accent);
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3em;
+      width: 100%;
+    }
+
+    .slider-group label {
+      width: 100%;
+      font-weight: bold;
+      background: transparent;
+      border: none;
+      padding: 0;
+      display: block;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      width: 100%;
+      background: var(--petrol);
+      border: 2px solid var(--accent);
+      padding: 0.35em 0.45em;
+      box-sizing: border-box;
+    }
+
+    .slider-row input[type="range"] {
+      flex: 1;
+      background: transparent;
+      border: none;
+    }
+
+    .slider-row span {
+      min-width: 3.5em;
+      text-align: right;
+      font-weight: bold;
+    }
+
+    .button-slot {
+      position: relative;
+      width: 28mm;
+      height: 28mm;
+      justify-self: center;
+      align-self: center;
+      overflow: hidden;
+      cursor: pointer;
+      transform-origin: center center;
+      /* scale from the center */
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    .button-slot.selected {
+      box-shadow: 0 0 0 3px var(--border);
+      border-radius: 50%;
+    }
+
+    .button-content {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      overflow: hidden;
+      z-index: 10;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay-inner,
+    .overlay-middle,
+    .overlay-outer,
+    .overlay-cutline {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .overlay-inner {
+      width: 23mm;
+      height: 23mm;
+      border: 1px dashed lime;
+      z-index: 30;
+    }
+
+    .overlay-middle {
+      width: 25mm;
+      height: 25mm;
+      border: 1px dashed orange;
+      z-index: 20;
+    }
+
+    .overlay-outer {
+      width: 28mm;
+      height: 28mm;
+      border: var(--bleed-width) dashed var(--bleed-border);
+      border-radius: 50%;
+      background: transparent;
+      box-shadow: none;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .overlay-cutline {
+      width: 28mm;
+      height: 28mm;
+      border: 1px solid #00ffff;
+      z-index: 40;
+      display: none;
+    }
+
+    .button-content img.button-image {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: auto;
+      height: auto;
+      display: block;
+      z-index: 1;
+      transform-origin: center center;
+    }
+
+
+    .checkbox {
+      position: absolute;
+      top: -2.5px;
+      left: -3.5px;
+      z-index: 20;
+      accent-color: var(--dark-royal-red);
+    }
+
+    #scaleContainer {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: var(--dark-royal-red);
+      border: 2px solid var(--accent);
+      padding: 0.5em;
+      z-index: 100;
+      color: var(--accent);
+      font-family: monospace;
+    }
+
+    #scaleSlider {
+      width: 150px;
+      vertical-align: middle;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+      font-weight: bold;
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 90vw;
+      max-width: 300px;
+      background-color: var(--dark-royal-red);
+      color: var(--accent);
+      text-align: left;
+      border: 2px solid var(--accent);
+      padding: 10px;
+      position: absolute;
+      z-index: 30;
+      top: 20px;
+      left: 20px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #selectionControls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5em;
+      justify-content: center;
+      margin: 1em 0;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      padding: 0.75em 0;
+    }
+
+    #selectionControls button {
+      min-width: 200px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: bold;
+      border: 3px solid var(--accent);
+      background: var(--petrol);
+      color: var(--accent);
+      box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.7);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+    }
+
+    #selectionControls button:hover {
+      background: var(--accent);
+      color: var(--dark-royal-red);
+      box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.85);
+    }
+
+    #selectionControls button:active {
+      transform: translate(2px, 2px);
+      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.85);
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      position: absolute;
+      top: 2em;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      max-width: 300px;
+      width: max-content;
+      background-color: var(--dark-royal-red);
+      color: var(--accent);
+      text-align: left;
+      border: 2px solid var(--accent);
+      padding: 10px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      white-space: normal;
+      overflow-wrap: break-word;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    #controlSidebar .help-tooltip .tooltiptext {
+      left: 0;
+      right: auto;
+      transform: none;
+      width: 100%;
+      max-width: none;
+      margin-top: 0.5em;
+      top: 100%;
+      border-left-width: 2px;
+      padding-left: 12px;
+      z-index: 100;
+    }
+
+    .logo-on-canvas {
+      grid-column: 1 / -1;
+      width: 35mm;
+      height: auto;
+      justify-self: center;
+      align-self: start;
+      padding-top: 50px;
+    }
+
+    #controls button {
+      height: auto;
+      align-self: flex;
+    }
+    .small-reset {
+      margin-top: 0.5em;
+      width: 100%;
+    }
+
+    #count {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    /* Brutalist base style */
+    .brutal-button {
+      position: relative;
+      overflow: hidden;
+      background: #fff;
+      color: #000;
+      font-weight: bold;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      padding: 0.6em 1.2em;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      text-transform: uppercase;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      cursor: pointer;
+      z-index: 1;
+    }
+
+    .brutal-button:hover {
+      background: #ff4444;
+      color: #fff;
+    }
+
+    .brutal-button:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    /* Shine effect */
+    .brutal-button.shiny::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -75%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(120deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent);
+      transform: skewX(-25deg);
+      animation: shine 3s ease-in-out infinite;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    @keyframes shine {
+      0% {
+        left: -75%;
+      }
+
+      100% {
+        left: 125%;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      #sidebar,
+      #controlSidebar {
+        max-width: 240px;
+        flex: 0 0 240px;
+        padding: 16px;
+      }
+
+      #controls,
+      #sidebar {
+        font-size: 0.92em;
+      }
+
+      #main h1 {
+        font-size: clamp(1.6rem, 4.2vw, 2.6rem);
+        padding: 0.5em 1.2em;
+      }
+
+      #selectionControls button {
+        min-width: 160px;
+        font-size: 0.85em;
+      }
+
+    }
+
+    @media (max-width: 820px) {
+      body {
+        flex-direction: column;
+      }
+
+      #sidebar,
+      #controlSidebar {
+        position: static;
+        max-width: 100%;
+        flex: 1 1 auto;
+        height: auto;
+        border-left: none;
+        border-right: none;
+      }
+
+      #main {
+        border-left: none;
+      }
+
+      #selectionControls {
+        position: static;
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+  <div id="sidebar">
+    <fieldset class="control upload" style="border:2px dashed var(--accent); padding:0.5em; max-height: 175px; min-height: fit-content; margin-bottom: 0.75em;">
+      <legend style="font-weight:bold; color:var(--accent);">Upload Images</legend>
+      <label>Select Image files:</label>
+      <div style="overflow: hidden;">
+        <input type="file" id="imageLoader" accept="image/*" multiple="" style="width: 100%;">
+      </div>
+    </fieldset>
+    <h3>Uploads</h3>
+    <div id="imageGallery"></div>
+    <details class="gallery-toggle">
+      <summary>Examples (Standards)</summary>
+      <div id="standardGallery"></div>
+    </details>
+  </div>
+  <div id="main">
+    <h1>ACME Button Template Maker</h1>
+    <div id="selectionControls">
+      <button onclick="selectAll()">Select All Buttons</button>
+      <button onclick="deselectAll()">Deselect All buttons</button>
+      <button onclick="resetselectione()">Clear from Selected</button>
+      <button onclick="resetAll()">Clear All Buttons</button>
+    </div>
+        <p>click circles to select / deselect</p>
+    <div id="canvasArea">
+      <div id="canvasWrapper">
+        <div id="a4canvas">
+          <img src="ⒶCME.png" alt="ACME Logo" class="logo-on-canvas" id="logo" />
+          <!-- Grid of button-slot DIVs is injected via JS -->
+        </div>
+      </div>
+    </div>
+    <p style="margin-top: 0.5em;">
+      Visit
+      <a href="https://acme-prototypes.com/" target="_blank"
+        style="color: var(--accent); text-decoration: underline;">acme-prototypes.com</a>
+      for more free stuff like this!
+    </p>
+  </div>
+
+  <div id="controlSidebar">
+    <div id="controls">
+          <span class="tooltip help-tooltip">❓
+      <span class="tooltiptext">
+        <strong>How to Use:</strong><br />
+        - Click a button or use the checkbox to select it<br />
+        - Upload an image to apply it to selected buttons<br />
+        - Adjust image position with X/Y offset and the image scale slider (live update for all selected)<br />
+        - Click an uploaded image to reuse it<br />
+        - Use the “Scale” slider to shrink or enlarge all buttons uniformly<br />
+        - Export will render a clean printable PNG<br />
+        - Green = Safe Area, Orange = Button Face, Red = Bleed<br /><br />
+        <strong>Print Tips:</strong><br />
+        - Use "Actual Size" or 100% scale<br />
+        - Disable "Fit to Page" or similar options<br />
+        - Print on A4 paper without margins or scaling<br />
+        - Prefer high-resolution printers
+      </span>
+    </span>
+      <fieldset class="control image-offset" style="border:2px dashed var(--accent); padding:0.5em;">
+        <legend style="font-weight:bold; color:var(--accent);">Image Offset</legend>
+        <label>X offset:<input type="number" id="offsetX" value="0" /></label>
+        <label>Y offset:<input type="number" id="offsetY" value="0" /></label>
+        <br>
+        <legend style="font-weight:bold; color:var(--accent);">Image Scale</legend>
+        <div class="slider-group">
+          <label for="imageScaleSlider">Scale (0.2 – 3.0):</label>
+          <div class="slider-row">
+            <input type="range" id="imageScaleSlider" min="0.2" max="3" step="0.01" value="1">
+            <span id="imageScaleValue">1.00×</span>
+          </div>
+        </div>
+        <button type="button" class="small-reset" onclick="resetImageAdjustments()">Reset Image Offset & Scale</button>
+      </fieldset>
+
+      <fieldset class="control background-color" style="border:2px dashed var(--accent); padding:0.5em;">
+        <legend style="font-weight:bold; color:var(--accent);">Button Background Color</legend>
+        <input type="color" id="buttonBgColorPickerRight" value="#ffffff" style="top: 6px; position: relative; width: 100%;">
+        <button type="button" style="margin-top: 0.5em; width: 100%;" onclick="applyBackgroundColor('buttonBgColorPickerRight')">Apply to Selected</button>
+      </fieldset>
+
+      <fieldset class="control button-scale" style="border:2px dashed var(--accent); padding:0.75em 1.25em 1em;min-height: fit-content;">
+        <legend style="font-weight:bold; color:var(--accent);">Button Scale</legend>
+        <div class="slider-group">
+          <label for="scaleSlider">Scale (0.5 – 1.5):</label>
+          <div class="slider-row">
+            <input type="range" id="scaleSlider" min="0.5" max="1.5" step="0.01" value="1">
+            <span id="scaleValue">1.00×</span>
+          </div>
+        </div>
+        <legend style="font-weight:bold; color:var(--accent);"><br>adjust if your printer <br>does printer stuff
+        </legend>
+        <button type="button" class="small-reset" onclick="resetButtonScale()">Reset Button Scale</button>
+      </fieldset>
+
+      <fieldset class="control canvas-zoom" style="border:2px dashed var(--accent); padding:0.5em;">
+        <legend style="font-weight:bold; color:var(--accent);">Canvas Zoom</legend>
+        <div id="canvasZoomControls">
+          <div class="slider-group">
+            <label for="canvasZoomSlider">Zoom:</label>
+            <div class="slider-row">
+              <input type="range" id="canvasZoomSlider" min="0.5" max="1.5" step="0.05" value="1">
+              <span id="canvasZoomValue">1.00×</span>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="control cutline-toggle" style="border:2px dashed var(--accent); padding:0.5em;">
+        <legend style="font-weight:bold; color:var(--accent);">Cutline Overlay</legend>
+        <label>
+          Extra cutline on top
+          <input type="checkbox" id="extraCutlineToggle">
+        </label>
+      </fieldset>
+
+      <div class="control action-bar">
+        <p id="count"></p>
+        <button id="exportBtn" class="brutal-button shiny" onclick="exportToPNG()">Export as PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+
+    const maxCols = 5;
+    const maxRows = 6;
+    const totalButtons = maxCols * maxRows;
+    const a4canvas = document.getElementById("a4canvas");
+    const canvasWrapper = document.getElementById("canvasWrapper");
+    const countDisplay = document.getElementById("count");
+    const imageGallery = document.getElementById("imageGallery");
+    const standardGallery = document.getElementById("standardGallery");
+    const canvasZoomSlider = document.getElementById("canvasZoomSlider");
+    const canvasZoomValue = document.getElementById("canvasZoomValue");
+
+    countDisplay.innerText = `Max Buttons per Page: ${totalButtons}`;
+
+    let selectedSlots = new Set();
+    let imageMap = new Map();
+    let uploadedImages = [];
+    let currentCanvasZoom = 1;
+
+    // 1) Build the 5×6 grid of button-slot DIVs
+    for (let i = 0; i < totalButtons; i++) {
+      const slot = document.createElement("div");
+      slot.classList.add("button-slot");
+      slot.dataset.index = i;
+
+      slot.innerHTML = `
+        <input type="checkbox"
+               class="checkbox"
+               onclick="event.stopPropagation(); toggleSlot(this.parentElement, this.checked);" />
+        <div class="button-content"></div>
+        <div class="overlay-inner"></div>
+        <div class="overlay-middle"></div>
+        <div class="overlay-outer"></div>
+        <div class="overlay-cutline"></div>
+      `;
+
+      // Clicking the slot (outside the checkbox) will toggle the checkbox & selection
+      slot.addEventListener("click", () => {
+        const checkbox = slot.querySelector(".checkbox");
+        checkbox.checked = !checkbox.checked;
+        toggleSlot(slot, checkbox.checked);
+      });
+
+      a4canvas.appendChild(slot);
+    }
+
+    const standardImageFiles = [
+      "lgbtq+.png",
+      "palestine.png",
+      "equali-tea.png",
+      "gayer.png",
+      "smoky.png",
+      "bantifa.png",
+      "adhs-antifa.png",
+      "good-night-white-pride.png",
+      "no-nazis.png",
+      "palestine-2.png",
+      "daria.png",
+      "Pigeon.png",
+      "oracles.png",
+      "racist.png",
+      "june.png",
+      "cat.png",
+      "good-night-cat.png",
+      "A.png",
+      "Lizzy.png",
+      "patriarchy.png",
+      "Flinta.png",
+      "innen.png",
+      "eat the rich.png",
+      "eat the rich2.png"
+    ];
+
+    function createGalleryItem({ imgSrc, onClick, removable, onRemove }) {
+      const galleryItem = document.createElement("div");
+      galleryItem.classList.add("gallery-item");
+
+      const galleryImg = document.createElement("img");
+      galleryImg.src = imgSrc;
+      galleryImg.style.cursor = "pointer";
+      galleryImg.addEventListener("click", onClick);
+
+      galleryItem.appendChild(galleryImg);
+
+      if (removable) {
+        const deleteBtn = document.createElement("span");
+        deleteBtn.innerHTML = "❌";
+        deleteBtn.title = "Remove image";
+        deleteBtn.className = "gallery-delete";
+        deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (onRemove) onRemove();
+          galleryItem.remove();
+        });
+        galleryItem.appendChild(deleteBtn);
+      }
+
+      return galleryItem;
+    }
+
+    function preloadStandardImages() {
+      if (!standardGallery) return;
+      standardImageFiles.forEach((filename) => {
+        const imgSrc = `standards/${filename}`;
+        const item = createGalleryItem({
+          imgSrc,
+          onClick: () => applyImageToSelected(imgSrc),
+          removable: false
+        });
+        standardGallery.appendChild(item);
+      });
+    }
+
+    const extraCutlineToggle = document.getElementById("extraCutlineToggle");
+    function updateExtraCutline() {
+      const show = extraCutlineToggle && extraCutlineToggle.checked;
+      document.querySelectorAll(".overlay-cutline").forEach((el) => {
+        el.style.display = show ? "block" : "none";
+      });
+    }
+
+    if (extraCutlineToggle) {
+      extraCutlineToggle.addEventListener("change", updateExtraCutline);
+      updateExtraCutline();
+    }
+
+    function applyBackgroundColor(pickerId) {
+      const leftPicker = document.getElementById("buttonBgColorPicker");
+      const rightPicker = document.getElementById("buttonBgColorPickerRight");
+      let sourcePicker = pickerId ? document.getElementById(pickerId) : null;
+      if (!sourcePicker) {
+        sourcePicker = rightPicker || leftPicker;
+      }
+      const color = sourcePicker ? sourcePicker.value : "#ffffff";
+
+      if (leftPicker && leftPicker !== sourcePicker) {
+        leftPicker.value = color;
+      }
+      if (rightPicker && rightPicker !== sourcePicker) {
+        rightPicker.value = color;
+      }
+
+      selectedSlots.forEach((slot) => {
+        const content = slot.querySelector(".button-content");
+        // Remove old background layer if it exists
+        const oldBg = content.querySelector(".button-bg-color");
+        if (oldBg) oldBg.remove();
+
+        // Create a new background circle layer
+        const bg = document.createElement("div");
+        bg.className = "button-bg-color";
+        bg.style.position = "absolute";
+        bg.style.top = "0";
+        bg.style.left = "0";
+        bg.style.width = "100%";
+        bg.style.height = "100%";
+        bg.style.borderRadius = "50%";
+        bg.style.backgroundColor = color;
+        bg.style.zIndex = "0";
+
+        // Insert it *before* the image so it sits underneath
+        content.insertBefore(bg, content.querySelector("img.button-image") || null);
+      });
+    }
+
+    function selectAll() {
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        const checkbox = slot.querySelector(".checkbox");
+        checkbox.checked = true;
+        slot.classList.add("selected");
+        selectedSlots.add(slot);
+      });
+      countDisplay.innerText = `Selected Buttons: ${selectedSlots.size}`;
+    }
+
+    function deselectAll() {
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        const checkbox = slot.querySelector(".checkbox");
+        checkbox.checked = false;
+        slot.classList.remove("selected");
+        selectedSlots.delete(slot);
+      });
+      countDisplay.innerText = `Selected Buttons: ${selectedSlots.size}`;
+    }
+
+    function resetselectione() {
+      // Remove images only from currently selected slots
+      selectedSlots.forEach((slot) => {
+        slot.querySelector(".button-content")
+          .querySelectorAll("img.button-image")
+          .forEach((img) => img.remove());
+        imageMap.delete(slot);
+        const bg = slot.querySelector(".button-content .button-bg-color");
+        if (bg) bg.remove();
+      });
+    }
+
+    function resetAll() {
+      // Clear everything: unselect and remove all images
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        const checkbox = slot.querySelector(".checkbox");
+        checkbox.checked = false;
+        slot.classList.remove("selected");
+        slot.querySelector(".button-content")
+          .querySelectorAll("img.button-image")
+          .forEach((img) => img.remove());
+        selectedSlots.delete(slot);
+        imageMap.delete(slot);
+        const bg = slot.querySelector(".button-content .button-bg-color");
+        if (bg) bg.remove();
+      });
+      countDisplay.innerText = `Selected Buttons: ${selectedSlots.size}`;
+    }
+
+    function toggleSlot(slot, checked) {
+      if (checked) {
+        slot.classList.add("selected");
+        selectedSlots.add(slot);
+      } else {
+        slot.classList.remove("selected");
+        selectedSlots.delete(slot);
+      }
+      countDisplay.innerText = `Selected Buttons: ${selectedSlots.size}`;
+    }
+
+    // 2) When an image is chosen, only apply it to slots that are already selected
+    document.getElementById("imageLoader").addEventListener("change", function (e) {
+      const files = e.target.files;
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const imgSrc = event.target.result;
+          uploadedImages.push(imgSrc);
+
+          // Add thumbnail to sidebar
+          // Add thumbnail with delete button to sidebar
+          const galleryItem = createGalleryItem({
+            imgSrc,
+            onClick: () => applyImageToSelected(imgSrc),
+            removable: true,
+            onRemove: () => {
+              uploadedImages = uploadedImages.filter(src => src !== imgSrc);
+            }
+          });
+
+          imageGallery.appendChild(galleryItem);
+
+
+          // Immediately apply to whichever slots are currently selected
+          applyImageToSelected(imgSrc);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    function applyImageTransform(img) {
+      if (!img) return;
+      const scale = parseFloat(img.dataset.scale || "1");
+      const baseScale = parseFloat(img.dataset.baseScale || "1");
+      const offsetX = parseFloat(img.dataset.offsetX || "0");
+      const offsetY = parseFloat(img.dataset.offsetY || "0");
+      img.style.left = `calc(50% + ${offsetX}px)`;
+      img.style.top = `calc(50% + ${offsetY}px)`;
+      img.style.transform = `translate(-50%, -50%) scale(${scale * baseScale})`;
+    }
+
+    function setImageBaseScale(img) {
+      if (!img) return;
+      const computeScale = () => {
+        const slot = img.closest(".button-slot");
+        if (!slot) return;
+        const slotSize = slot.clientWidth || 0;
+        if (!img.naturalWidth || !img.naturalHeight || !slotSize) return;
+        const widthScale = slotSize / img.naturalWidth;
+        const heightScale = slotSize / img.naturalHeight;
+        const fitScale = Math.max(widthScale, heightScale);
+        img.dataset.baseScale = fitScale;
+        applyImageTransform(img);
+      };
+
+      img.addEventListener("load", computeScale, { once: true });
+      if (img.complete && img.naturalWidth) {
+        computeScale();
+      }
+    }
+
+    function applyImageToSelected(imgSrc) {
+      // Only loop through currently-selected slots
+      selectedSlots.forEach((slot) => {
+        // Remove any old <img> inside this slot
+        const content = slot.querySelector(".button-content");
+        content
+          .querySelectorAll("img.button-image")
+          .forEach((oldImg) => oldImg.remove());
+        const img = document.createElement("img");
+        img.src = imgSrc;
+        img.classList.add("button-image");
+        const currentScale = parseFloat(imageScaleSlider.value) || 1;
+        const currentOffsetX = parseFloat(document.getElementById("offsetX").value) || 0;
+        const currentOffsetY = parseFloat(document.getElementById("offsetY").value) || 0;
+        img.dataset.scale = currentScale;
+        img.dataset.offsetX = currentOffsetX;
+        img.dataset.offsetY = currentOffsetY;
+        img.dataset.baseScale = "1";
+        applyImageTransform(img);
+        content.appendChild(img);
+        setImageBaseScale(img);
+        imageMap.set(slot, { x: 0, y: 0, src: imgSrc });
+      });
+    }
+
+    function updateOffsets() {
+      const x = parseFloat(document.getElementById("offsetX").value) || 0;
+      const y = parseFloat(document.getElementById("offsetY").value) || 0;
+      selectedSlots.forEach((slot) => {
+        const img = slot.querySelector(".button-content img.button-image");
+        if (img) {
+          img.dataset.offsetX = x;
+          img.dataset.offsetY = y;
+          applyImageTransform(img);
+        }
+      });
+    }
+
+    document.getElementById("offsetX").addEventListener("input", updateOffsets);
+    document.getElementById("offsetY").addEventListener("input", updateOffsets);
+
+    // Canvas zoom control (preview only)
+    let userSetCanvasZoom = false;
+    function setCanvasZoom(value) {
+      currentCanvasZoom = value;
+      if (canvasZoomValue) {
+        canvasZoomValue.innerText = value.toFixed(2) + "×";
+      }
+      a4canvas.style.transform = `scale(${value})`;
+    }
+
+    function autoFitCanvasZoom() {
+      if (!canvasWrapper) return;
+      const baseWidth = a4canvas.offsetWidth || 0;
+      const baseHeight = a4canvas.offsetHeight || 0;
+      if (!baseWidth || !baseHeight) return;
+      const availableWidth = canvasWrapper.clientWidth || baseWidth;
+      const wrapperRect = canvasWrapper.getBoundingClientRect();
+      const availableHeight = Math.max(200, window.innerHeight - wrapperRect.top - 20);
+      const canUseLargeZoom =
+        availableWidth >= baseWidth * 1.2 &&
+        availableHeight >= baseHeight * 1.2;
+      const fitZoom = Math.min(
+        1,
+        availableWidth / baseWidth,
+        availableHeight / baseHeight
+      );
+      const targetZoom = canUseLargeZoom ? 1.2 : fitZoom;
+      const clamped = Math.max(0.5, Math.min(1.5, targetZoom));
+      if (canvasZoomSlider) {
+        canvasZoomSlider.value = clamped.toFixed(2);
+      }
+      setCanvasZoom(clamped);
+    }
+
+    if (canvasZoomSlider) {
+      const initialZoom = parseFloat(canvasZoomSlider.value) || 1;
+      setCanvasZoom(initialZoom);
+      canvasZoomSlider.addEventListener("input", (e) => {
+        const zoom = parseFloat(e.target.value) || 1;
+        userSetCanvasZoom = true;
+        setCanvasZoom(zoom);
+      });
+    }
+
+    // ================
+    // SCALE SLIDER LOGIC
+    // ================
+    const scaleSlider = document.getElementById("scaleSlider");
+    const scaleValueLabel = document.getElementById("scaleValue");
+
+    scaleSlider.addEventListener("input", function (e) {
+      const scale = parseFloat(e.target.value);
+      scaleValueLabel.innerText = scale.toFixed(2) + "×";
+      appliedCanvasScale = scale;
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        slot.dataset.slotScale = scale;
+        slot.style.transform = `scale(${scale})`;
+      });
+    });
+
+    function resetButtonScale() {
+      const defaultScale = 1;
+      scaleSlider.value = defaultScale.toString();
+      scaleValueLabel.innerText = "1.00×";
+      appliedCanvasScale = defaultScale;
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        slot.dataset.slotScale = defaultScale;
+        slot.style.transform = "scale(1)";
+      });
+    }
+
+    // 3) Export to PNG
+    let appliedCanvasScale = 1;
+    function exportToPNG() {
+      const imgs = a4canvas.querySelectorAll("img");
+      const acmeLogo = document.getElementById("logo");
+
+      const loadPromises = Array.from(imgs).map((img) => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        });
+      });
+
+      Promise.all(loadPromises).then(() => {
+        // Hide UI helpers that should not appear in export
+        const hiddenCheck = [];
+        document.querySelectorAll(".checkbox").forEach((el) => {
+          hiddenCheck.push(el);
+          el.style.display = "none";
+        });
+
+        const hiddenOverlayHelpers = [];
+        document.querySelectorAll(".overlay-inner, .overlay-middle").forEach((el) => {
+          hiddenOverlayHelpers.push(el);
+          el.style.visibility = "hidden";
+        });
+
+        const outerRingTweaks = [];
+        document.querySelectorAll(".overlay-outer").forEach((el) => {
+          outerRingTweaks.push({ el, cssText: el.style.cssText });
+          el.style.boxSizing = "border-box";
+          el.style.border = "1px solid #000";
+          el.style.borderRadius = "50%";
+          el.style.background = "transparent";
+          el.style.zIndex = "0";
+        });
+
+        const topCutlineTweaks = [];
+        document.querySelectorAll(".overlay-cutline").forEach((el) => {
+          topCutlineTweaks.push({ el, cssText: el.style.cssText });
+          if (el.style.display !== "none") {
+            el.style.boxSizing = "border-box";
+            el.style.border = "1px solid #000";
+            el.style.borderRadius = "50%";
+            el.style.background = "transparent";
+            el.style.zIndex = "15";
+          }
+        });
+
+        document.querySelectorAll(".button-slot").forEach((slot) => {
+          slot.classList.remove("selected");
+        });
+
+        // === Convert logo to grayscale ===
+        const logoClone = acmeLogo.cloneNode();
+        const tempCanvas = document.createElement("canvas");
+        const ctx = tempCanvas.getContext("2d");
+        tempCanvas.width = acmeLogo.naturalWidth;
+        tempCanvas.height = acmeLogo.naturalHeight;
+        ctx.drawImage(acmeLogo, 0, 0);
+        const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const avg = 0.3 * data[i] + 0.59 * data[i + 1] + 0.11 * data[i + 2];
+          data[i] = data[i + 1] = data[i + 2] = avg;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        acmeLogo.src = tempCanvas.toDataURL();
+
+        acmeLogo.onload = () => {
+          html2canvas(a4canvas, {
+            scale: 2,
+            useCORS: false,
+            allowTaint: true,
+            backgroundColor: null,
+            onclone: (clonedDoc) => {
+              const clonedCanvas = clonedDoc.getElementById("a4canvas");
+              if (clonedCanvas) {
+                clonedCanvas.style.transform = "scale(1)";
+                clonedCanvas.style.transformOrigin = "top center";
+              }
+            },
+          })
+            .then((canvas) => {
+              const link = document.createElement("a");
+              link.download = "ⒶCME-button-sheet.png";
+              link.href = canvas.toDataURL("image/png");
+              link.click();
+            })
+            .finally(() => {
+              acmeLogo.replaceWith(logoClone);
+              hiddenCheck.forEach((el) => (el.style.display = ""));
+              hiddenOverlayHelpers.forEach((el) => (el.style.visibility = ""));
+              outerRingTweaks.forEach(({ el, cssText }) => {
+                el.style.cssText = cssText;
+              });
+              topCutlineTweaks.forEach(({ el, cssText }) => {
+                el.style.cssText = cssText;
+              });
+            });
+        };
+      });
+    }
+    
+    const imageScaleSlider = document.getElementById("imageScaleSlider");
+    const imageScaleValue = document.getElementById("imageScaleValue");
+
+    function resetImageAdjustments() {
+      const defaultOffset = "0";
+      const defaultScale = "1";
+      const offsetXInput = document.getElementById("offsetX");
+      const offsetYInput = document.getElementById("offsetY");
+
+      offsetXInput.value = defaultOffset;
+      offsetYInput.value = defaultOffset;
+      imageScaleSlider.value = defaultScale;
+      imageScaleValue.innerText = "1.00×";
+
+      if (!selectedSlots.size) {
+        return; // no selection, just prep inputs for the next selection
+      }
+
+      selectedSlots.forEach((slot) => {
+        const img = slot.querySelector(".button-content img.button-image");
+        if (img) {
+          img.dataset.offsetX = defaultOffset;
+          img.dataset.offsetY = defaultOffset;
+          img.dataset.scale = defaultScale;
+          applyImageTransform(img);
+        }
+      });
+    }
+
+    imageScaleSlider.addEventListener("input", function (e) {
+      const scale = parseFloat(e.target.value);
+      imageScaleValue.innerText = scale.toFixed(2) + "×";
+
+      // Apply scale transform to each selected image
+      selectedSlots.forEach((slot) => {
+        const img = slot.querySelector(".button-content img.button-image");
+        if (img) {
+          img.dataset.scale = scale;
+          applyImageTransform(img);
+        }
+      });
+    });
+    // Ensure there is no base transform so export matches preview
+    window.addEventListener("load", () => {
+      const scaleSlider = document.getElementById("scaleSlider");
+      const scaleValueLabel = document.getElementById("scaleValue");
+      scaleSlider.value = "1";
+      scaleValueLabel.innerText = "1.00×";
+      document.querySelectorAll(".button-slot").forEach((slot) => {
+        slot.style.transform = "scale(1)";
+      });
+
+      const imageScaleSlider = document.getElementById("imageScaleSlider");
+      const imageScaleValue = document.getElementById("imageScaleValue");
+      imageScaleSlider.value = "1";
+      imageScaleValue.innerText = "1.00×";
+    });
+
+    preloadStandardImages();
+
+    window.addEventListener("load", () => {
+      if (!userSetCanvasZoom) {
+        autoFitCanvasZoom();
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (!userSetCanvasZoom) {
+        autoFitCanvasZoom();
+      }
+    });
+
+  </script>
+
+</body>
+
+</html>
