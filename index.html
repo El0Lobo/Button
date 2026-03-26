@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACME Button Template Maker</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="stylesheet" href="static/css/styles.css">
+</head>
+
+<body>
+  <div id="panelScrim"></div>
+  <div id="mobilePanelButtons">
+    <button id="openUploads" type="button">Uploads</button>
+    <button id="openSettings" type="button">Settings</button>
+  </div>
+  <div id="sidebar">
+    <div class="panel">
+      <h2 class="panel-title">Uploads</h2>
+      <fieldset class="control upload" style="border:2px dashed var(--accent); padding:0.5em; max-height: 175px; min-height: fit-content; margin-bottom: 0.75em;">
+        <legend style="font-weight:bold; color:var(--accent);">Upload Images</legend>
+        <label>Select Image files:</label>
+        <div style="overflow: hidden;">
+          <input type="file" id="imageLoader" accept="image/*" multiple="" style="width: 100%;">
+        </div>
+      </fieldset>
+      <h3>Uploads</h3>
+      <div id="imageGallery"></div>
+      <details class="gallery-toggle" open>
+        <summary>Examples</summary>
+        <div id="standardGallery"></div>
+      </details>
+    </div>
+  </div>
+
+  <div id="main">
+    <h1>ACME Button Template Maker</h1>
+    <div id="selectionControls">
+      <button onclick="selectAll()">Select All Buttons</button>
+      <button onclick="deselectAll()">Deselect All buttons</button>
+      <button onclick="resetselectione()">Clear from Selected</button>
+      <button onclick="resetAll()">Clear All Buttons</button>
+    </div>
+    <p>click circles to select / deselect</p>
+    <div id="canvasArea">
+      <div id="canvasWrapper">
+        <div id="canvasScale">
+          <div id="a4canvas">
+            <img src="ⒶCME.png" alt="ACME Logo" class="logo-on-canvas" id="logo" />
+            <!-- Grid of button-slot DIVs is injected via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer id="footer">
+      <p style="margin-top: 0.5em;">
+        Visit
+        <a href="https://acme-prototypes.com/" target="_blank"
+          style="color: var(--accent); text-decoration: underline;">acme-prototypes.com</a>
+        for more free stuff like this!
+      </p>
+    </footer>
+  </div>
+
+  <div id="controlSidebar">
+    <div class="panel">
+      <h2 class="panel-title">Settings</h2>
+      <button type="button" class="help-tooltip" id="helpToggle" aria-haspopup="dialog" aria-controls="helpModal">?</button>
+      <div id="controls">
+
+        <fieldset class="control image-offset" style="border:2px dashed var(--accent); padding:0.5em;">
+          <legend style="font-weight:bold; color:var(--accent);">Image Offset</legend>
+          <label>X offset:<input type="number" id="offsetX" value="0" /></label>
+          <label>Y offset:<input type="number" id="offsetY" value="0" /></label>
+          <br>
+          <legend style="font-weight:bold; color:var(--accent);">Image Scale</legend>
+          <div class="slider-group">
+            <label for="imageScaleSlider">Scale (0.2 – 3.0):</label>
+            <div class="slider-row">
+              <input type="range" id="imageScaleSlider" min="0.2" max="3" step="0.01" value="1">
+              <span id="imageScaleValue">1.00×</span>
+            </div>
+          </div>
+          <button type="button" class="small-reset" onclick="resetImageAdjustments()">Reset Image Offset & Scale</button>
+        </fieldset>
+
+        <fieldset class="control background-color" style="border:2px dashed var(--accent); padding:0.5em;">
+          <legend style="font-weight:bold; color:var(--accent);">Background Color</legend>
+        <div class="color-picker" data-target="buttonBgColorPickerRight">
+          <div class="color-picker__sv" aria-label="Saturation and value">
+            <div class="color-picker__sv-cursor"></div>
+          </div>
+          <input type="range" class="color-picker__hue" min="0" max="360" value="0" aria-label="Hue">
+          <div class="color-picker__row">
+            <input type="text" class="color-picker__hex" value="#FFFFFF" aria-label="Hex color">
+            <div class="color-picker__swatch" aria-label="Selected color"></div>
+            <button type="button" class="color-picker__apply"
+              onclick="applyBackgroundColor('buttonBgColorPickerRight')">Apply to Selected</button>
+          </div>
+          <div class="color-picker__row">
+            <button type="button" class="color-picker__pick">Pick from page</button>
+          </div>
+          <input type="hidden" id="buttonBgColorPickerRight" value="#ffffff">
+        </div>
+        </fieldset>
+
+        <fieldset class="control button-scale" style="border:2px dashed var(--accent); padding:0.5em;">
+          <legend style="font-weight:bold; color:var(--accent);">Button Scale</legend>
+          <div class="slider-group">
+            <label for="scaleSlider">Scale (0.5 – 1.5):</label>
+            <div class="slider-row">
+              <input type="range" id="scaleSlider" min="0.5" max="1.5" step="0.01" value="1">
+              <span id="scaleValue">1.00×</span>
+            </div>
+          </div>
+          <legend style="font-weight:bold; color:var(--accent);"><br>adjust if your printer <br>does printer stuff
+          </legend>
+          <button type="button" class="small-reset" onclick="resetButtonScale()">Reset Button Scale</button>
+        </fieldset>
+
+        <fieldset class="control cutline-toggle" style="border:2px dashed var(--accent); padding:0.5em;">
+          <legend style="font-weight:bold; color:var(--accent);">Cutline Overlay</legend>
+          <label>
+            Extra cutline on top (28mm)
+            <input type="checkbox" id="extraCutlineToggle">
+          </label>
+          <label class="stacked-label" style="margin-top: 0.35em;">
+            <span class="stacked-row">
+              <span>Custom cutline radius</span>
+              <input type="checkbox" id="customCutlineToggle">
+            </span>
+            <span class="stacked-row">
+              <span>Diameter (mm)</span>
+              <input type="number" id="customCutlineDiameter" value="33" min="1" step="0.5">
+            </span>
+          </label>
+          <label style="margin-top: 0.35em;">
+            Hide cutline when custom
+            <input type="checkbox" id="hideDefaultRingsToggle">
+          </label>
+          <label style="margin-top: 0.35em;">
+            Ink saver (mask art to 28mm)
+            <input type="checkbox" id="inkSaverToggle">
+          </label>
+        </fieldset>
+
+        <fieldset class="control gridline-toggle" style="border:2px dashed var(--accent); padding:0.5em;">
+          <legend style="font-weight:bold; color:var(--accent);">Guides & Cut Boxes</legend>
+          <label>
+            Center gridlines
+            <input type="checkbox" id="gridlinesToggle">
+          </label>
+          <label style="margin-top: 0.35em;">
+            Cut boxes around buttons
+            <input type="checkbox" id="cutboxToggle">
+          </label>
+        </fieldset>
+
+        <div class="control action-bar">
+          <p id="count"></p>
+          <button id="exportBtn" class="brutal-button shiny" onclick="exportToPNG()">Export as PNG</button>
+          <button id="exportPdfBtn" class="brutal-button2 shiny" onclick="exportToPDF()">Export as PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="helpModal" class="help-modal" aria-hidden="true" role="dialog" aria-labelledby="helpModalTitle">
+    <div class="help-modal__backdrop" data-help-close></div>
+    <div class="help-modal__panel" role="document">
+      <button type="button" class="help-modal__close" data-help-close aria-label="Close help">✕</button>
+      <div class="help-modal__content">
+        <h3 id="helpModalTitle">How to Use</h3>
+        <ul>
+          <li>Click a button or use the checkbox to select it</li>
+          <li>Upload an image to apply it to selected buttons</li>
+          <li>Adjust image position with X/Y offset and the image scale slider (live update for all selected)</li>
+          <li>Click an uploaded image to reuse it</li>
+          <li>Use the “Scale” slider to shrink or enlarge all buttons uniformly</li>
+          <li>Export will render a clean printable PNG</li>
+          <li>Green = Safe Area, Orange = Button Face, Red = Bleed</li>
+        </ul>
+        <h3>Print Tips</h3>
+        <ul>
+          <li>Use "Actual Size" or 100% scale</li>
+          <li>Disable "Fit to Page" or similar options</li>
+          <li>Print on A4 paper without margins or scaling</li>
+          <li>Prefer high-resolution printers</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="floatingZoom">
+    <fieldset class="control canvas-zoom" style="border:2px dashed var(--accent); padding:0.5em;">
+      <legend style="font-weight:bold; color:var(--accent);">Canvas Zoom</legend>
+      <div id="canvasZoomControls">
+        <div class="slider-group">
+          <div class="slider-row">
+            <input type="range" id="canvasZoomSlider" min="0.25" max="1.5" step="0.05" value="1.2">
+            <span id="canvasZoomValue">1.20×</span>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="static/js/app.js"></script>
+  <script>
+    (function () {
+      const sidebar = document.getElementById("sidebar");
+      const controlSidebar = document.getElementById("controlSidebar");
+      const openUploads = document.getElementById("openUploads");
+      const openSettings = document.getElementById("openSettings");
+      const scrim = document.getElementById("panelScrim");
+
+      function closePanels() {
+        sidebar.classList.remove("panel-open");
+        controlSidebar.classList.remove("panel-open");
+        scrim.classList.remove("active");
+      }
+
+      function openPanel(target) {
+        closePanels();
+        target.classList.add("panel-open");
+        scrim.classList.add("active");
+      }
+
+      if (openUploads) {
+        openUploads.addEventListener("click", () => openPanel(sidebar));
+      }
+      if (openSettings) {
+        openSettings.addEventListener("click", () => openPanel(controlSidebar));
+      }
+      if (scrim) {
+        scrim.addEventListener("click", closePanels);
+      }
+
+      // adjust zoom bar so it doesn't overlap the footer when the footer scrolls into view.
+      (function () {
+        const zoom = document.getElementById("floatingZoom");
+        const footer = document.getElementById("footer");
+        if (!zoom || !footer) return;
+
+        const baseOffset = 12; // pixels from viewport bottom when no overlap
+
+        function updateZoomPosition() {
+          const rect = footer.getBoundingClientRect();
+          if (rect.top < window.innerHeight) {
+            // footer is visible; move zoom above it
+            const overlap = window.innerHeight - rect.top;
+            zoom.style.bottom = `${overlap + baseOffset}px`;
+          } else {
+            zoom.style.bottom = `${baseOffset}px`;
+          }
+        }
+
+        window.addEventListener("scroll", updateZoomPosition);
+        window.addEventListener("resize", updateZoomPosition);
+        // initialize position after layout
+        requestAnimationFrame(updateZoomPosition);
+        window.addEventListener("load", () => requestAnimationFrame(updateZoomPosition));
+      })();
+    })();
+  </script>
+
+</body>
+
+</html>

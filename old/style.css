@@ -1,0 +1,149 @@
+/* Mobile-focused overrides for index.html. Keeps original look via styles.css. */
+
+body {
+  overflow-x: hidden;
+}
+
+/* Panels (no internal collapse) */
+
+
+.panel {
+  border: none;
+  margin-bottom: 0.75em;
+}
+
+/* hide details marker if any details remain */
+.panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* preserve styles for opened details (not used for panels) */
+.panel[open] > summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Floating zoom bar */
+#floatingZoom {
+  position: fixed;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  width: min(560px, 92vw);
+  background: var(--dark-royal-red);
+  border: 3px solid var(--accent);
+  padding: 0.35em 0.6em;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.7);
+  transition: bottom 0.2s ease;
+  opacity: 0.8;
+}
+
+#floatingZoom .control {
+  margin-bottom: 0;
+}
+
+#canvasWrapper {
+  padding-bottom: 5.5rem;
+}
+
+/* Mobile overlapping panels */
+@media (max-width: 900px) {
+  #mobilePanelButtons {
+    position: sticky;
+    top: 0;
+    z-index: 250;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.6rem;
+    background: var(--petrol);
+    border-bottom: 3px solid var(--border);
+  }
+
+  #mobilePanelButtons button {
+    flex: 1;
+    font-family: monospace;
+    text-transform: uppercase;
+    border: 2px solid var(--accent);
+    background: var(--dark-royal-red);
+    color: var(--accent);
+    padding: 0.45rem 0.6rem;
+  }
+
+  #panelScrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 240;
+  }
+
+  #panelScrim.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #sidebar,
+  #controlSidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    height: auto;
+    max-width: 85vw;
+    width: 85vw;
+    overflow-y: auto;
+    z-index: 260;
+    box-shadow: 10px 0 0 rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s ease;
+  }
+
+  #sidebar {
+    left: 0;
+    transform: translateX(-105%);
+  }
+
+  #controlSidebar {
+    right: 0;
+    transform: translateX(105%);
+    box-shadow: -10px 0 0 rgba(0, 0, 0, 0.5);
+  }
+
+  #sidebar.panel-open {
+    transform: translateX(0);
+  }
+
+  #controlSidebar.panel-open {
+    transform: translateX(0);
+  }
+
+  #controls {
+    margin: 0;
+  }
+
+  #selectionControls button {
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 720px) {
+  #selectionControls {
+    gap: 0.35em;
+  }
+
+  #selectionControls button {
+    min-width: 0;
+    flex: 1 1 46%;
+  }
+}
+
+@media (min-width: 901px) {
+  #mobilePanelButtons {
+    display: none;
+  }
+
+  #panelScrim {
+    display: none;
+  }
+}
