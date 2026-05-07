@@ -1314,68 +1314,6 @@
       return canvas.toDataURL("image/png");
     }
 
-    async function createSlotExportSnapshot(slot) {
-      if (!slot) return null;
-      const content = slot.querySelector(".button-content");
-      if (!content) return null;
-      const img = content.querySelector("img.button-image");
-      const bg = slot.querySelector(".button-bg-color");
-      if (!img && !bg) return null;
-
-      if (img) {
-        await waitForImage(img);
-      }
-
-      const contentRect = content.getBoundingClientRect();
-      if (!contentRect.width || !contentRect.height) return null;
-
-      const snapshotSize = Math.max(512, Math.round(contentRect.width * 8));
-      const canvas = document.createElement("canvas");
-      canvas.width = snapshotSize;
-      canvas.height = snapshotSize;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return null;
-
-      ctx.clearRect(0, 0, snapshotSize, snapshotSize);
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(snapshotSize / 2, snapshotSize / 2, snapshotSize / 2, 0, Math.PI * 2);
-      ctx.clip();
-
-      if (bg) {
-        const bgColor = getComputedStyle(bg).backgroundColor;
-        if (bgColor && bgColor !== "rgba(0, 0, 0, 0)" && bgColor !== "transparent") {
-          ctx.fillStyle = bgColor;
-          ctx.fillRect(0, 0, snapshotSize, snapshotSize);
-        }
-      }
-
-      if (img && img.naturalWidth && img.naturalHeight) {
-        const imgRect = img.getBoundingClientRect();
-        const scale = snapshotSize / contentRect.width;
-        const drawX = (imgRect.left - contentRect.left) * scale;
-        const drawY = (imgRect.top - contentRect.top) * scale;
-        const drawWidth = imgRect.width * scale;
-        const drawHeight = imgRect.height * scale;
-        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-      }
-
-      ctx.restore();
-      return canvas.toDataURL("image/png");
-    }
-
-    async function buildExportSnapshotMap() {
-      const snapshots = new Map();
-      const slots = a4canvas.querySelectorAll(".button-slot");
-      for (const slot of slots) {
-        const snapshot = await createSlotExportSnapshot(slot);
-        if (snapshot) {
-          snapshots.set(slot.dataset.index || "", snapshot);
-        }
-      }
-      return snapshots;
-    }
-
     function nextFrame() {
       return new Promise((resolve) => requestAnimationFrame(() => resolve()));
     }
@@ -1515,7 +1453,7 @@
         const slotRect = slot.getBoundingClientRect();
         if (!slotRect.width || !slotRect.height) return;
         const targets = slot.querySelectorAll(
-          ".button-content, .button-bg-color, .overlay-cutbox, .overlay-outer, .overlay-inner, .overlay-middle, .overlay-cutline-default, .overlay-cutline-custom"
+          ".button-content, .button-content img.button-image, .button-bg-color, .overlay-cutbox, .overlay-outer, .overlay-inner, .overlay-middle, .overlay-cutline-default, .overlay-cutline-custom"
         );
         targets.forEach((el) => {
           const rect = el.getBoundingClientRect();
@@ -1541,7 +1479,7 @@
         const slotRect = slot.getBoundingClientRect();
         if (!slotRect.width || !slotRect.height) return;
         const targets = slot.querySelectorAll(
-          ".button-content, .button-bg-color, .overlay-cutbox, .overlay-outer, .overlay-inner, .overlay-middle, .overlay-cutline-default, .overlay-cutline-custom"
+          ".button-content, .button-content img.button-image, .button-bg-color, .overlay-cutbox, .overlay-outer, .overlay-inner, .overlay-middle, .overlay-cutline-default, .overlay-cutline-custom"
         );
         targets.forEach((el) => {
           const rect = el.getBoundingClientRect();
@@ -1567,9 +1505,9 @@
       const imgs = a4canvas.querySelectorAll("img");
       const acmeLogo = document.getElementById("logo");
       waitForImages(imgs).then(async () => {
+        const exportScale = Math.min(8, Math.max(4, Math.ceil(window.devicePixelRatio || 1)));
         const originalLogoSrc = acmeLogo ? acmeLogo.getAttribute("src") : null;
         const bwDataUrl = await getMonochromeLogoDataURL(acmeLogo);
-        const exportSnapshots = await buildExportSnapshotMap();
         const exportWidth = a4canvas.scrollWidth || a4canvas.clientWidth;
         const exportHeight = a4canvas.scrollHeight || a4canvas.clientHeight;
 
@@ -1579,7 +1517,7 @@
         }
 
         html2canvas(a4canvas, {
-          scale: 3,
+          scale: exportScale,
           useCORS: false,
           allowTaint: true,
           backgroundColor: null,
@@ -1601,18 +1539,7 @@
             clonedCanvas.style.transition = "none";
 
             applyExportStyles(clonedCanvas, acmeLogo);
-
-            clonedCanvas.querySelectorAll(".button-slot").forEach((slot) => {
-              const content = slot.querySelector(".button-content");
-              const snapshot = exportSnapshots.get(slot.dataset.index || "");
-              if (!content || !snapshot) return;
-
-              content.innerHTML = "";
-              content.style.backgroundImage = `url("${snapshot}")`;
-              content.style.backgroundRepeat = "no-repeat";
-              content.style.backgroundPosition = "center";
-              content.style.backgroundSize = "cover";
-            });
+            freezeExportLayoutForRoot(clonedCanvas);
 
             const clonedLogo = clonedCanvas.querySelector("#logo");
             if (clonedLogo && bwDataUrl) {
