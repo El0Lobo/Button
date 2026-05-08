@@ -1304,11 +1304,10 @@
         const b = data[i + 2];
         const a = data[i + 3];
         if (a === 0) continue;
-        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        const bw = lum > 128 ? 255 : 0;
-        data[i] = bw;
-        data[i + 1] = bw;
-        data[i + 2] = bw;
+        const gray = Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
+        data[i] = gray;
+        data[i + 1] = gray;
+        data[i + 2] = gray;
       }
       ctx.putImageData(imageData, 0, 0);
       return canvas.toDataURL("image/png");
@@ -1453,7 +1452,7 @@
         const slotRect = slot.getBoundingClientRect();
         if (!slotRect.width || !slotRect.height) return;
         const targets = slot.querySelectorAll(
-          ".button-content, .button-content img.button-image, .button-bg-color, .overlay-cutbox, .overlay-outer, .overlay-inner, .overlay-middle, .overlay-cutline-default, .overlay-cutline-custom"
+          ".button-bg-color, .overlay-outer, .overlay-inner, .overlay-middle, .overlay-cutline-default, .overlay-cutline-custom"
         );
         targets.forEach((el) => {
           const rect = el.getBoundingClientRect();
@@ -1479,7 +1478,7 @@
         const slotRect = slot.getBoundingClientRect();
         if (!slotRect.width || !slotRect.height) return;
         const targets = slot.querySelectorAll(
-          ".button-content, .button-content img.button-image, .button-bg-color, .overlay-cutbox, .overlay-outer, .overlay-inner, .overlay-middle, .overlay-cutline-default, .overlay-cutline-custom"
+          ".button-bg-color, .overlay-outer, .overlay-inner, .overlay-middle, .overlay-cutline-default, .overlay-cutline-custom"
         );
         targets.forEach((el) => {
           const rect = el.getBoundingClientRect();
@@ -1501,6 +1500,78 @@
       });
     }
 
+    function lockCloneMaskLayout(root) {
+      root.querySelectorAll(".button-slot").forEach((cloneSlot) => {
+        const idx = cloneSlot.dataset.index;
+        if (typeof idx === "undefined") return;
+        const liveSlot = a4canvas.querySelector(`.button-slot[data-index="${idx}"]`);
+        if (!liveSlot) return;
+
+        const liveContent = liveSlot.querySelector(".button-content");
+        const cloneContent = cloneSlot.querySelector(".button-content");
+        if (!liveContent || !cloneContent) return;
+
+        const liveSlotRect = liveSlot.getBoundingClientRect();
+        const cloneSlotRect = cloneSlot.getBoundingClientRect();
+        const liveContentRect = liveContent.getBoundingClientRect();
+        if (!liveSlotRect.width || !cloneSlotRect.width) return;
+
+        const ratio = cloneSlotRect.width / liveSlotRect.width;
+        const left = (liveContentRect.left - liveSlotRect.left) * ratio;
+        const top = (liveContentRect.top - liveSlotRect.top) * ratio;
+        const width = liveContentRect.width * ratio;
+        const height = liveContentRect.height * ratio;
+
+        cloneContent.style.inset = "auto";
+        cloneContent.style.left = `${left}px`;
+        cloneContent.style.top = `${top}px`;
+        cloneContent.style.right = "auto";
+        cloneContent.style.bottom = "auto";
+        cloneContent.style.width = `${width}px`;
+        cloneContent.style.height = `${height}px`;
+        cloneContent.style.transform = "none";
+        cloneContent.style.borderRadius = "50%";
+        cloneContent.style.overflow = "hidden";
+      });
+    }
+
+    function normalizeCloneImageAnchors(root) {
+      root.querySelectorAll(".button-slot").forEach((slot) => {
+        const content = slot.querySelector(".button-content");
+        if (content) {
+          content.style.position = "absolute";
+          content.style.inset = "0";
+          content.style.left = "0";
+          content.style.top = "0";
+          content.style.right = "auto";
+          content.style.bottom = "auto";
+          content.style.width = "100%";
+          content.style.height = "100%";
+          content.style.transform = "none";
+          content.style.display = "flex";
+          content.style.alignItems = "center";
+          content.style.justifyContent = "center";
+        }
+
+        const img = slot.querySelector(".button-content img.button-image");
+        if (img) {
+          const scale = parseFloat(img.dataset.scale || "1");
+          const baseScale = parseFloat(img.dataset.baseScale || "1");
+          const offsetX = parseFloat(img.dataset.offsetX || "0");
+          const offsetY = parseFloat(img.dataset.offsetY || "0");
+          img.style.position = "absolute";
+          img.style.left = `calc(50% + ${offsetX}px)`;
+          img.style.top = `calc(50% + ${offsetY}px)`;
+          img.style.right = "auto";
+          img.style.bottom = "auto";
+          img.style.width = "auto";
+          img.style.height = "auto";
+          img.style.transformOrigin = "center center";
+          img.style.transform = `translate(-50%, -50%) scale(${scale * baseScale})`;
+        }
+      });
+    }
+
     function exportSheet(kind) {
       const imgs = a4canvas.querySelectorAll("img");
       const acmeLogo = document.getElementById("logo");
@@ -1508,8 +1579,8 @@
         const exportScale = Math.min(8, Math.max(4, Math.ceil(window.devicePixelRatio || 1)));
         const originalLogoSrc = acmeLogo ? acmeLogo.getAttribute("src") : null;
         const bwDataUrl = await getMonochromeLogoDataURL(acmeLogo);
-        const exportWidth = a4canvas.scrollWidth || a4canvas.clientWidth;
-        const exportHeight = a4canvas.scrollHeight || a4canvas.clientHeight;
+        const exportWidth = a4canvas.clientWidth;
+        const exportHeight = a4canvas.clientHeight;
 
         if (acmeLogo && bwDataUrl) {
           acmeLogo.setAttribute("src", bwDataUrl);
@@ -1540,6 +1611,7 @@
 
             applyExportStyles(clonedCanvas, acmeLogo);
             freezeExportLayoutForRoot(clonedCanvas);
+            lockCloneMaskLayout(clonedCanvas);
 
             const clonedLogo = clonedCanvas.querySelector("#logo");
             if (clonedLogo && bwDataUrl) {

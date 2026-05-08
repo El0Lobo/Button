@@ -866,11 +866,11 @@
 
     .logo-on-canvas {
       grid-column: 1 / -1;
-      width: 35mm;
+      width: 65mm;
       height: auto;
       justify-self: center;
       align-self: start;
-      padding-top: 50px;
+      padding-top: 30px;
     }
 
     #controls button {
